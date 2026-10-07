@@ -1,7 +1,9 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
+import android.content.Intent;
 import android.os.Bundle;
 
+import android.widget.Button;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -20,5 +22,25 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Button btnPlaylists = findViewById(R.id.btnPlaylists);
+        Button btnPlayer = findViewById(R.id.btnPlayer);
+        Button btnSettings = findViewById(R.id.btnSettings);
+
+        btnPlaylists.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PlaylistActivity.class);
+            startActivity(intent);
+        });
+
+        btnPlayer.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+            startActivity(intent);
+        });
+
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
     }
 }
