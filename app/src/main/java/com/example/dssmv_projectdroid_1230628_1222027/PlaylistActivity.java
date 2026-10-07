@@ -1,9 +1,10 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.widget.EditText;
 
 import android.widget.Button;
-import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -11,9 +12,19 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.dssmv_projectdroid_1230628_1222027.Adapters.PlaylistAdapter;
+import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
+import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlaylistActivity extends AppCompatActivity {
-
+    private RecyclerView recyclerPlaylists;
+    private Button btnAddPlaylist;
+    private List<Playlist> playlists;
+    private PlaylistAdapter adapter;
+    private SharedPreferencesManager prefsManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,13 +36,33 @@ public class PlaylistActivity extends AppCompatActivity {
             return insets;
         });
 
-        RecyclerView recyclerPlaylists = findViewById(R.id.recyclerPlaylists);
-        Button btnAddPlaylist = findViewById(R.id.btnAddPlaylist);
+        prefsManager = new SharedPreferencesManager(this);
+        playlists = prefsManager.loadPlaylists();
+
+        recyclerPlaylists = findViewById(R.id.recyclerPlaylists);
+        btnAddPlaylist = findViewById(R.id.btnAddPlaylist);
+        adapter = new PlaylistAdapter(playlists);
 
         recyclerPlaylists.setLayoutManager(new LinearLayoutManager(this));
+        recyclerPlaylists.setAdapter(adapter);
 
-        btnAddPlaylist.setOnClickListener(v -> {
-            Toast.makeText(PlaylistActivity.this, "New funciona", Toast.LENGTH_SHORT).show();
-        });
+        btnAddPlaylist.setOnClickListener(v -> showCreatePlaylistDialog());}
+    private void showCreatePlaylistDialog() {
+        EditText input = new EditText(this);
+        input.setHint("Playlist Name");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Create Playlist")
+                .setView(input)
+                .setPositiveButton("Create", (dialog, which) -> {
+                    String name = input.getText().toString().trim();
+                    if (!name.isEmpty()) {
+                        playlists.add(new Playlist(name));
+                        adapter.notifyItemInserted(playlists.size() - 1);
+                        prefsManager.savePlaylists(playlists);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
