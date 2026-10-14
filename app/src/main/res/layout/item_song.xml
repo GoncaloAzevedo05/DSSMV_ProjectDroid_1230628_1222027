@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+              android:padding="12dp"
+              android:gravity="center_vertical"
+              android:background="?attr/selectableItemBackground">
+
+    <ImageView
+            android:id="@+id/imgSongCover"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:background="#E0E0E0" />
+
+    <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+        <TextView
+                android:id="@+id/txtSongTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Song Title"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+        <TextView
+                android:id="@+id/txtArtistName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Artist Name"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:ellipsize="end"
+                android:maxLines="1" />
+    </LinearLayout>
+
+    <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Play"
+            android:layout_marginEnd="8dp" />
+
+</LinearLayout>

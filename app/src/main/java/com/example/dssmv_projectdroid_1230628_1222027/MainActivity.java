@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnPlaylists = findViewById(R.id.btnPlaylists);
         Button btnPlayer = findViewById(R.id.btnPlayer);
         Button btnSettings = findViewById(R.id.btnSettings);
+        Button btnSearch = findViewById(R.id.btnSearch);
 
         btnPlaylists.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PlaylistActivity.class);
@@ -42,5 +43,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        btnSearch.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
     }
 }

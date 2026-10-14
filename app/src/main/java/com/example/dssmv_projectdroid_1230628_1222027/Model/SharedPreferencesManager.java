@@ -11,6 +11,7 @@ import java.util.List;
 public class SharedPreferencesManager {
     private static final String PREFS_NAME = "MusicAppPrefs";
     private static final String KEY_PLAYLISTS = "playlists_list";
+    private static final String KEY_SEARCH_HISTORY = "search_history_list";
     private final SharedPreferences sharedPreferences;
     private final Gson gson;
 
@@ -33,6 +34,29 @@ public class SharedPreferencesManager {
         Type type = new TypeToken<ArrayList<Playlist>>() {}.getType();
         List<Playlist> savedList = gson.fromJson(json, type);
 
+        return savedList != null ? savedList : new ArrayList<>();
+    }
+
+    public void saveSearchQuery(String query) {
+        List<String> history = loadSearchHistory();
+        history.remove(query);
+        history.add(0, query);
+
+        if (history.size() > 10) {
+            history = history.subList(0, 10);
+        }
+
+        String json = gson.toJson(history);
+        sharedPreferences.edit().putString(KEY_SEARCH_HISTORY, json).apply();
+    }
+
+    public List<String> loadSearchHistory() {
+        String json = sharedPreferences.getString(KEY_SEARCH_HISTORY, null);
+        if (json == null) {
+            return new ArrayList<>();
+        }
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        List<String> savedList = gson.fromJson(json, type);
         return savedList != null ? savedList : new ArrayList<>();
     }
 }

@@ -23,6 +23,12 @@
             android:text="Playlists" />
 
     <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Search" />
+
+    <Button
             android:id="@+id/btnPlayer"
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -34,5 +40,6 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="Account Settings" />
+
 
 </LinearLayout>

@@ -41,7 +41,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
         recyclerPlaylists = findViewById(R.id.recyclerPlaylists);
         btnAddPlaylist = findViewById(R.id.btnAddPlaylist);
-        adapter = new PlaylistAdapter(playlists);
+        adapter = new PlaylistAdapter(playlists, position -> showDeleteConfirmationDialog(position));
 
         recyclerPlaylists.setLayoutManager(new LinearLayoutManager(this));
         recyclerPlaylists.setAdapter(adapter);
@@ -61,6 +61,21 @@ public class PlaylistActivity extends AppCompatActivity {
                         adapter.notifyItemInserted(playlists.size() - 1);
                         prefsManager.savePlaylists(playlists);
                     }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    private void showDeleteConfirmationDialog(int position) {
+        Playlist playlistToDelete = playlists.get(position);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Playlist")
+                .setMessage("Are you sure you want to delete \"" + playlistToDelete.getTitle() + "\"?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    playlists.remove(position);
+                    adapter.notifyItemRemoved(position);
+
+                    prefsManager.savePlaylists(playlists);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

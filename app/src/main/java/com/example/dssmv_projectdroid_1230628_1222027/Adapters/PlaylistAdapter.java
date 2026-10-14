@@ -12,9 +12,13 @@ import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import java.util.List;
 public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder> {
     private List<Playlist> playlistList;
-
-    public PlaylistAdapter(List<Playlist> playlistList) {
+    private OnPlaylistLongClickListener longClickListener;
+    public interface OnPlaylistLongClickListener {
+        void OnPlaylistLongClick(int position);
+    }
+    public PlaylistAdapter(List<Playlist> playlistList, OnPlaylistLongClickListener longClickListener) {
         this.playlistList = playlistList;
+        this.longClickListener = longClickListener;
     }
 
     @NonNull
@@ -30,6 +34,13 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
         Playlist playlist = playlistList.get(position);
         holder.txtTitle.setText(playlist.getTitle());
         holder.txtCount.setText(playlist.getSongCount() + " songs");
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.OnPlaylistLongClick(holder.getAdapterPosition());
+            }
+            return true;
+        });
     }
 
     @Override

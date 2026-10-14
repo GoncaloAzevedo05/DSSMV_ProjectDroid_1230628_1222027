@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,6 +12,18 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/Theme.DSSMV_ProjectDroid_1230628_1222027">
+        <activity
+                android:name=".SearchResultsActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".SearchActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".MostListenedActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".FavoritesActivity"
+                android:exported="false"/>
         <activity
                 android:name=".SettingsActivity"
                 android:exported="false"/>
@@ -28,7 +42,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>
