@@ -21,7 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private ImageView imgProfilePicture;
     private TextView txtUserName, txtUserEmail;
-    private Button btnAccountInfo, btnFavoriteSongs, btnTopArtist, btnLogout;
+    private Button btnAccountInfo, btnFavoriteSongs, btnTopArtist, btnLogout, btnDownloadedMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnFavoriteSongs = findViewById(R.id.btnFavoriteSongs);
         btnTopArtist = findViewById(R.id.btnTopArtist);
         btnLogout = findViewById(R.id.btnLogout);
+        btnDownloadedMusic = findViewById(R.id.btnDownloadedMusic);
 
         ProfileData userProfile = new ProfileData(
                 "Teste",
@@ -87,5 +88,10 @@ public class SettingsActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(v ->
             Toast.makeText(this, "funciona4", Toast.LENGTH_SHORT).show()
         );
+
+        btnDownloadedMusic.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, DownloadedSongsActivity.class);
+            startActivity(intent);
+        });
     }
 }

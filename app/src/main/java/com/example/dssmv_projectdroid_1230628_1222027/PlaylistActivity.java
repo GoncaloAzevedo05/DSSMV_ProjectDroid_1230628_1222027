@@ -1,10 +1,12 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 
 import android.widget.Button;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -15,15 +17,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.PlaylistAdapter;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistActivity extends AppCompatActivity {
-    private RecyclerView recyclerPlaylists;
-    private Button btnAddPlaylist;
-    private List<Playlist> playlists;
-    private PlaylistAdapter adapter;
+    private RecyclerView recyclerMyPlaylists;
+    private RecyclerView recyclerDownloadedPlaylists;
+    private ExtendedFloatingActionButton fabAddPlaylist;
+    private List<Playlist> myPlaylistsList;
+    private List<Playlist> downloadedPlaylistsList;
+    private PlaylistAdapter myPlaylistsAdapter;
+    private PlaylistAdapter downloadedPlaylistsAdapter;
     private SharedPreferencesManager prefsManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,16 +44,111 @@ public class PlaylistActivity extends AppCompatActivity {
         });
 
         prefsManager = new SharedPreferencesManager(this);
-        playlists = prefsManager.loadPlaylists();
 
-        recyclerPlaylists = findViewById(R.id.recyclerPlaylists);
-        btnAddPlaylist = findViewById(R.id.btnAddPlaylist);
-        adapter = new PlaylistAdapter(playlists, position -> showDeleteConfirmationDialog(position));
+        recyclerMyPlaylists = findViewById(R.id.recyclerMyPlaylists);
+        recyclerDownloadedPlaylists = findViewById(R.id.recyclerDownloadedPlaylists);
+        fabAddPlaylist = findViewById(R.id.fabAddPlaylist);
 
-        recyclerPlaylists.setLayoutManager(new LinearLayoutManager(this));
-        recyclerPlaylists.setAdapter(adapter);
+        recyclerMyPlaylists.setLayoutManager(new LinearLayoutManager(this));
+        recyclerDownloadedPlaylists.setLayoutManager(new LinearLayoutManager(this));
 
-        btnAddPlaylist.setOnClickListener(v -> showCreatePlaylistDialog());}
+        loadPlaylistsData();
+
+        fabAddPlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadPlaylistsData();
+    }
+
+    private void loadPlaylistsData() {
+        myPlaylistsList = prefsManager.loadMyPlaylists();
+        downloadedPlaylistsList = prefsManager.loadDownloadedPlaylists();
+
+        if (myPlaylistsList.isEmpty() && downloadedPlaylistsList.isEmpty()) {
+            myPlaylistsList.add(new Playlist("Favorites"));
+            prefsManager.saveMyPlaylists(myPlaylistsList);
+
+            Playlist downloadedMock = new Playlist("1", "Álbum Offline (API)", "", true);
+            downloadedPlaylistsList.add(downloadedMock);
+            prefsManager.saveDownloadedPlaylists(downloadedPlaylistsList);
+        }
+
+        myPlaylistsAdapter = new PlaylistAdapter(myPlaylistsList, new PlaylistAdapter.OnPlaylistListener() {
+            @Override
+            public void onPlaylistClick(Playlist playlist) {
+                openDetail(playlist, true);
+            }
+
+            @Override
+            public void onPlaylistLongClick(Playlist playlist, int position) {
+                showOptionsDialog(playlist, position, true);
+            }
+        });
+        recyclerMyPlaylists.setAdapter(myPlaylistsAdapter);
+
+        downloadedPlaylistsAdapter = new PlaylistAdapter(downloadedPlaylistsList, new PlaylistAdapter.OnPlaylistListener() {
+            @Override
+            public void onPlaylistClick(Playlist playlist) {
+                openDetail(playlist, true);
+            }
+
+            @Override
+            public void onPlaylistLongClick(Playlist playlist, int position) {
+                showOptionsDialog(playlist, position, false);
+            }
+        });
+        recyclerDownloadedPlaylists.setAdapter(downloadedPlaylistsAdapter);
+    }
+
+    private void openDetail(Playlist playlist, boolean isSaved) {
+        Intent intent = new Intent(PlaylistActivity.this, PlaylistDetailActivity.class);
+        intent.putExtra("EXTRA_PLAYLIST", playlist);
+        intent.putExtra("EXTRA_IS_SAVED", isSaved);
+        startActivity(intent);
+    }
+
+    private void showOptionsDialog(Playlist playlist, int position, boolean isMyPlaylist) {
+        String[] options = {"View", "Delete"};
+        new AlertDialog.Builder(this)
+                .setTitle(playlist.getTitle())
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        openDetail(playlist, true);
+                    } else {
+                        confirmAndDelete(position, isMyPlaylist);
+                    }
+                })
+                .show();
+    }
+
+    private void confirmAndDelete(int position, boolean isMyPlaylist) {
+        List<Playlist> targetList = isMyPlaylist ? myPlaylistsList : downloadedPlaylistsList;
+        Playlist playlistToDelete = targetList.get(position);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Playlist")
+                .setMessage("Are you sure you want to delete \"" + playlistToDelete.getTitle() + "\"?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    targetList.remove(position);
+
+                    if (isMyPlaylist) {
+                        prefsManager.saveMyPlaylists(myPlaylistsList);
+                        myPlaylistsAdapter.notifyItemRemoved(position);
+                        myPlaylistsAdapter.notifyItemRangeChanged(position, myPlaylistsList.size());
+                    } else {
+                        prefsManager.saveDownloadedPlaylists(downloadedPlaylistsList);
+                        downloadedPlaylistsAdapter.notifyItemRemoved(position);
+                        downloadedPlaylistsAdapter.notifyItemRangeChanged(position, downloadedPlaylistsList.size());
+                    }
+
+                    Toast.makeText(this, "Playlist apagada.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
     private void showCreatePlaylistDialog() {
         EditText input = new EditText(this);
         input.setHint("Playlist Name");
@@ -57,25 +159,14 @@ public class PlaylistActivity extends AppCompatActivity {
                 .setPositiveButton("Create", (dialog, which) -> {
                     String name = input.getText().toString().trim();
                     if (!name.isEmpty()) {
-                        playlists.add(new Playlist(name));
-                        adapter.notifyItemInserted(playlists.size() - 1);
-                        prefsManager.savePlaylists(playlists);
+                        Playlist newPlaylist = new Playlist(name);
+                        myPlaylistsList.add(newPlaylist);
+
+                        prefsManager.saveMyPlaylists(myPlaylistsList);
+
+                        myPlaylistsAdapter.notifyItemInserted(myPlaylistsList.size() - 1);
+                        Toast.makeText(this, "Playlist criada!", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-    private void showDeleteConfirmationDialog(int position) {
-        Playlist playlistToDelete = playlists.get(position);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Playlist")
-                .setMessage("Are you sure you want to delete \"" + playlistToDelete.getTitle() + "\"?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    playlists.remove(position);
-                    adapter.notifyItemRemoved(position);
-
-                    prefsManager.savePlaylists(playlists);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

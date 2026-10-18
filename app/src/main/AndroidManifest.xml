@@ -13,6 +13,12 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.DSSMV_ProjectDroid_1230628_1222027">
         <activity
+                android:name=".DownloadedSongsActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".PlaylistDetailActivity"
+                android:exported="false"/>
+        <activity
                 android:name=".SearchResultsActivity"
                 android:exported="false"/>
         <activity

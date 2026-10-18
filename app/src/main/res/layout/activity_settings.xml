@@ -128,4 +128,16 @@
             app:iconPadding="8dp"
             app:iconTint="#FFFFFF" />
 
+    <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDownloadedMusic"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="12dp"
+            android:text="Downloaded Music"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:strokeColor="#282828" />
+
 </LinearLayout>

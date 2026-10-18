@@ -1,5 +1,7 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 
 import android.widget.ImageButton;
@@ -14,13 +16,17 @@ import androidx.core.view.WindowInsetsCompat;
 import com.bumptech.glide.Glide;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 
+import java.io.IOException;
+
 public class MusicPlayerActivity extends AppCompatActivity {
     private ImageView imgAlbumCover;
     private TextView txtSongTitle, txtArtistName;
     private ImageButton btnFavorite, btnPrevious, btnPlayPause, btnNext;
 
+    private MediaPlayer mediaPlayer;
     private boolean isPlaying = false;
     private boolean isFavorite = false;
+    private String audioUrl = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,11 +49,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         Song currentSong = (Song) getIntent().getSerializableExtra("SONG_KEY");
         if (currentSong == null) {
-            currentSong = new Song("Starboy", "The Weeknd", "", "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b5d718688e");
+            currentSong = new Song("1", "Starboy", "The Weeknd", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
         }
 
         txtSongTitle.setText(currentSong.getTitle());
         txtArtistName.setText(currentSong.getArtist());
+        audioUrl = currentSong.getAudioUrl();
 
         if (currentSong.getImageUrl() != null && !currentSong.getImageUrl().isEmpty()) {
             Glide.with(this)
@@ -56,14 +63,19 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     .into(imgAlbumCover);
         }
 
+        prepareMediaPlayer();
+
         btnPlayPause.setOnClickListener(v -> {
-            isPlaying = !isPlaying;
-            if (isPlaying) {
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-                Toast.makeText(this, "funciona1", Toast.LENGTH_SHORT).show();
-            } else {
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-                Toast.makeText(this, "funciona2", Toast.LENGTH_SHORT).show();
+            if (mediaPlayer != null) {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.pause();
+                    isPlaying = false;
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+                } else {
+                    mediaPlayer.start();
+                    isPlaying = true;
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+                }
             }
         });
 
@@ -85,5 +97,35 @@ public class MusicPlayerActivity extends AppCompatActivity {
         btnNext.setOnClickListener(v ->
                 Toast.makeText(this, "funciona6", Toast.LENGTH_SHORT).show()
         );
+    }
+    private void prepareMediaPlayer() {
+        if (audioUrl == null || audioUrl.isEmpty()) {
+            Toast.makeText(this, "Link de áudio indisponível", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            mediaPlayer = new MediaPlayer();
+            if (audioUrl.startsWith("content://")) {
+
+                mediaPlayer.setDataSource(this, Uri.parse(audioUrl));
+            } else {
+                mediaPlayer.setDataSource(audioUrl);
+            }
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(mp -> {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao carregar o leitor de áudio", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 }
