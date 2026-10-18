@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:id="@+id/main_search_results"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:background="#121212"
               android:orientation="vertical"
-              android:padding="16dp">
+              android:padding="20dp">
 
     <TextView
             android:id="@+id/txtSearchTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:ellipsize="end"
+            android:letterSpacing="0.01"
+            android:maxLines="2"
             android:text="Resultados para: &quot;...&quot;"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerResults"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            android:scrollbars="vertical" />
 
 </LinearLayout>

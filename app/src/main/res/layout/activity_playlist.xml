@@ -1,36 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/main_playlist"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:padding="16dp">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/main_playlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#121212"
+                android:padding="20dp">
 
     <LinearLayout
+            android:id="@+id/headerLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="20dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:orientation="horizontal">
 
         <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:letterSpacing="0.02"
                 android:text="My Playlists"
-                android:textSize="24sp"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
                 android:textStyle="bold" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddPlaylist"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+ New" />
+                android:layout_height="44dp"
+                android:text="New"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="#282828"
+                app:cornerRadius="22dp"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconTint="#1DB954" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerPlaylists"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_below="@id/headerLayout"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp"
+            android:scrollbars="vertical" />
 
-</LinearLayout>
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/fabAddPlaylist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="Criar Playlist"
+            android:text="New Playlist"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:backgroundTint="#1DB954"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconTint="#FFFFFF" />
+
+</RelativeLayout>
