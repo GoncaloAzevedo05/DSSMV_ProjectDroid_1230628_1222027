@@ -30,7 +30,7 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="36dp"
+            android:layout_marginBottom="32dp"
             android:text="Música sem limites"
             android:textColor="#B3B3B3"
             android:textSize="14sp" />
@@ -65,7 +65,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="8dp"
             android:textColorHint="#B3B3B3"
             app:boxBackgroundColor="#282828"
             app:boxCornerRadiusBottomEnd="12dp"
@@ -83,11 +83,23 @@
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Password"
+                android:hint="Password (6-16 caracteres)"
                 android:inputType="textPassword"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+            android:id="@+id/txtForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginBottom="24dp"
+            android:padding="4dp"
+            android:text="Esqueceste-te da palavra-passe?"
+            android:textColor="#1DB954"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
     <ProgressBar
             android:id="@+id/progressBar"

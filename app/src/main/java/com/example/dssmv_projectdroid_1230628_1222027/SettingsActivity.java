@@ -85,9 +85,25 @@ public class SettingsActivity extends AppCompatActivity {
         }
         );
 
-        btnLogout.setOnClickListener(v ->
-            Toast.makeText(this, "funciona4", Toast.LENGTH_SHORT).show()
-        );
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Sair da Conta")
+                    .setMessage("Tens a certeza que pretendes terminar a sessão?")
+                    .setPositiveButton("Sair", (dialog, which) -> {
+                        // TODO: Limpar sessão no Supabase Auth quando estiver integrado
+                        // SupabaseClient.auth.signOut();
+
+                        Toast.makeText(SettingsActivity.this, "Sessão terminada", Toast.LENGTH_SHORT).show();
+
+                        // Redirecionar para o LoginActivity limpando toda a pilha de Atividades
+                        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
 
         btnDownloadedMusic.setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, DownloadedSongsActivity.class);
