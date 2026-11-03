@@ -12,6 +12,10 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String userEmail = "";
+    private String userName = "";
+    private String userCreatedAt = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +26,12 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        if (getIntent() != null) {
+            userEmail = getIntent().getStringExtra("USER_EMAIL");
+            userName = getIntent().getStringExtra("USER_NAME");
+            userCreatedAt = getIntent().getStringExtra("USER_CREATED_AT");
+        }
 
         Button btnPlaylists = findViewById(R.id.btnPlaylists);
         Button btnPlayer = findViewById(R.id.btnPlayer);
@@ -40,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
 
         btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            intent.putExtra("USER_EMAIL", userEmail);
+            intent.putExtra("USER_NAME", userName);
+            intent.putExtra("USER_CREATED_AT", userCreatedAt);
             startActivity(intent);
         });
 

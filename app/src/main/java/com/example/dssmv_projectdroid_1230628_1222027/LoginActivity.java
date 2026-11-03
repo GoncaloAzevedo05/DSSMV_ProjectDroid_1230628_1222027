@@ -15,8 +15,20 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.AuthResponse;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserCred;
+import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,20 +37,33 @@ public class LoginActivity extends AppCompatActivity {
     private TextView txtRegister, txtForgotPassword;
     private ProgressBar progressBar;
 
+    private SharedPreferencesManager prefsManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        prefsManager = new SharedPreferencesManager(this);
+
+        if (prefsManager.isUserLoggedIn()) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("USER_EMAIL", prefsManager.getUserEmail());
+            intent.putExtra("USER_NAME", prefsManager.getUserName());
+            intent.putExtra("USER_CREATED_AT", prefsManager.getUserCreatedAt());
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        // Suporte a EdgeToEdge
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_login), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Inicialização de Views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -46,22 +71,13 @@ public class LoginActivity extends AppCompatActivity {
         txtForgotPassword = findViewById(R.id.txtForgotPassword);
         progressBar = findViewById(R.id.progressBar);
 
-        // Listener do Botão Login
         btnLogin.setOnClickListener(v -> performLogin());
 
-        // Listener para Criar Nova Conta / Registo
         txtRegister.setOnClickListener(v -> {
-             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-             startActivity(intent);
-            Toast.makeText(this, "Navegar para ecrã de registo", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
 
-//        txtRegister.setOnClickListener(v -> {
-//            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-//            startActivity(intent);
-//        });
-
-        // Listener para Recuperar Palavra-passe
         txtForgotPassword.setOnClickListener(v -> performPasswordReset());
     }
 
@@ -69,28 +85,24 @@ public class LoginActivity extends AppCompatActivity {
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
         String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
 
-        // 1. Validação de Email Vazio
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("Por favor, introduz o e-mail");
             etEmail.requestFocus();
             return;
         }
 
-        // 2. Validação da Estrutura/Formato do Email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Introduz um endereço de e-mail válido (ex: utilizador@dominio.com)");
             etEmail.requestFocus();
             return;
         }
 
-        // 3. Validação de Password Vazia
         if (TextUtils.isEmpty(password)) {
             etPassword.setError("Por favor, introduz a palavra-passe");
             etPassword.requestFocus();
             return;
         }
 
-        // 4. Validação de Comprimento da Password (entre 6 e 16 caracteres)
         if (password.length() < 6 || password.length() > 16) {
             etPassword.setError("A palavra-passe deve conter entre 6 e 16 caracteres");
             etPassword.requestFocus();
@@ -99,25 +111,54 @@ public class LoginActivity extends AppCompatActivity {
 
         showLoading(true);
 
-        // TODO: Substituir por chamada real ao Supabase Auth
-        // Exemplo: client.auth.signInWithPassword(email, password)
-        btnLogin.postDelayed(() -> {
-            showLoading(false);
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+        UserCred credentials = new UserCred(email, password);
 
-            // Simulação de Sucesso no Login
-            Toast.makeText(LoginActivity.this, "Login efetuado com sucesso!", Toast.LENGTH_SHORT).show();
+        api.login(credentials).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                showLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(LoginActivity.this, "Login efetuado com sucesso!", Toast.LENGTH_SHORT).show();
+                    AuthResponse auth = response.body();
 
-            // Abrir a MainActivity e encerrar a LoginActivity para não voltar ao pressionar "Back"
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }, 1200);
+                    String email = "";
+                    String name = "";
+                    String createdAt = "";
+
+                    if (auth.getUser() != null) {
+                        email = auth.getUser().getEmail();
+                        name = auth.getUser().getUsername();
+                        createdAt = auth.getUser().getCreatedAt();
+                    }
+
+                    prefsManager.saveUserSession(email, name, createdAt);
+
+                    Toast.makeText(LoginActivity.this, "Sessão iniciada com sucesso!", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("USER_EMAIL", email);
+                    intent.putExtra("USER_NAME", name);
+                    intent.putExtra("USER_CREATED_AT", createdAt);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Credenciais inválidas.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                showLoading(false);
+                Toast.makeText(LoginActivity.this, "Erro de ligação: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void performPasswordReset() {
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
 
-        // Validar se o utilizador preencheu o e-mail antes de pedir o envio de recuperação
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Preenche um e-mail válido para receber a hiperligação de recuperação");
             etEmail.requestFocus();
@@ -126,12 +167,27 @@ public class LoginActivity extends AppCompatActivity {
 
         showLoading(true);
 
-        // TODO: Substituir por chamada real do Supabase:
-        // client.auth.resetPasswordForEmail(email)
-        btnLogin.postDelayed(() -> {
-            showLoading(false);
-            Toast.makeText(LoginActivity.this, "E-mail de recuperação enviado para " + email, Toast.LENGTH_LONG).show();
-        }, 1000);
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+        Map<String, String> body = new HashMap<>();
+        body.put("email", email);
+
+        api.forgotPassword(body).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                showLoading(false);
+                if (response.isSuccessful()) {
+                    Toast.makeText(LoginActivity.this, "E-mail de recuperação enviado para " + email, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Erro ao enviar e-mail de recuperação", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                showLoading(false);
+                Toast.makeText(LoginActivity.this, "Erro de ligação: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showLoading(boolean isLoading) {

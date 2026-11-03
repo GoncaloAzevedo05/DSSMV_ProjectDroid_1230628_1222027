@@ -15,8 +15,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.AuthResponse;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserCred;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -31,14 +42,12 @@ public class RegisterActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
 
-        // Suporte a EdgeToEdge
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_register), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Inicialização de Views
         etUsername = findViewById(R.id.etUsername);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -47,10 +56,8 @@ public class RegisterActivity extends AppCompatActivity {
         txtLogin = findViewById(R.id.txtLogin);
         progressBar = findViewById(R.id.progressBar);
 
-        // Submeter Registo
         btnRegister.setOnClickListener(v -> performRegister());
 
-        // Voltar para o Ecrã de Login
         txtLogin.setOnClickListener(v -> finish());
     }
 
@@ -60,42 +67,36 @@ public class RegisterActivity extends AppCompatActivity {
         String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
         String confirmPassword = etConfirmPassword.getText() != null ? etConfirmPassword.getText().toString().trim() : "";
 
-        // 1. Validação de Nome de Utilizador
         if (TextUtils.isEmpty(username)) {
             etUsername.setError("Introduz o teu nome de utilizador");
             etUsername.requestFocus();
             return;
         }
 
-        // 2. Validação de Email Vazio
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("Introduz o teu e-mail");
             etEmail.requestFocus();
             return;
         }
 
-        // 3. Validação do Formato do Email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Introduz um e-mail válido (ex: utilizador@dominio.com)");
             etEmail.requestFocus();
             return;
         }
 
-        // 4. Validação de Password Vazia
         if (TextUtils.isEmpty(password)) {
             etPassword.setError("Introduz uma palavra-passe");
             etPassword.requestFocus();
             return;
         }
 
-        // 5. Validação de Comprimento da Password (entre 6 e 16 caracteres)
         if (password.length() < 6 || password.length() > 16) {
             etPassword.setError("A palavra-passe deve conter entre 6 e 16 caracteres");
             etPassword.requestFocus();
             return;
         }
 
-        // 6. Validação de Confirmação da Password
         if (!password.equals(confirmPassword)) {
             etConfirmPassword.setError("As palavras-passe não coincidem");
             etConfirmPassword.requestFocus();
@@ -104,26 +105,38 @@ public class RegisterActivity extends AppCompatActivity {
 
         showLoading(true);
 
-        // TODO: Substituir pela chamada do Supabase para registar utilizador
-        // No Supabase Auth, se o e-mail já existir, a API devolverá um erro que podes capturar assim:
-        /*
-        supabase.auth.signUp(email, password, res -> {
-            if (res.isSuccessful()) { ... }
-            else { etEmail.setError("Este e-mail já está em uso por outra conta."); }
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("display_name", username);
+        data.put("full_name", username);
+
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+        UserCred credentials = new UserCred(email, password, data);
+
+        api.register(credentials).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                showLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(RegisterActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                    intent.putExtra("USER_EMAIL", email);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    etEmail.setError("Este e-mail já se encontra registado.");
+                    etEmail.requestFocus();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                showLoading(false);
+                Toast.makeText(RegisterActivity.this, "Erro de ligação: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
-        */
-
-        // Simulação temporária de Registo:
-        btnRegister.postDelayed(() -> {
-            showLoading(false);
-            Toast.makeText(RegisterActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
-
-            // Navegar diretamente para a MainActivity
-            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        }, 1200);
     }
 
     private void showLoading(boolean isLoading) {

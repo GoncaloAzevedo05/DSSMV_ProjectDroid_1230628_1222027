@@ -13,12 +13,62 @@ public class SharedPreferencesManager {
     private static final String KEY_MY_PLAYLISTS = "my_playlists";
     private static final String KEY_DOWNLOADED_PLAYLISTS = "downloaded_playlists";
     private static final String KEY_SEARCH_HISTORY = "search_history_list";
+
+    private static final String KEY_USER_EMAIL = "user_email";
+    private static final String KEY_USER_NAME = "user_name";
+    private static final String KEY_USER_CREATED_AT = "user_created_at";
+    private static final String KEY_LOGIN_TIMESTAMP = "login_timestamp";
+
+    private static final long SESSION_EXPIRATION_TIME = 86400000L;
     private final SharedPreferences sharedPreferences;
     private final Gson gson;
 
     public SharedPreferencesManager(Context context) {
         this.sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.gson = new Gson();
+    }
+
+    public void saveUserSession(String email, String name, String createdAt) {
+        sharedPreferences.edit()
+                .putString(KEY_USER_EMAIL, email)
+                .putString(KEY_USER_NAME, name)
+                .putString(KEY_USER_CREATED_AT, createdAt)
+                .putLong(KEY_LOGIN_TIMESTAMP, System.currentTimeMillis())
+                .apply();
+    }
+
+    public boolean isUserLoggedIn() {
+        long loginTime = sharedPreferences.getLong(KEY_LOGIN_TIMESTAMP, 0);
+        if (loginTime == 0) return false;
+
+        long currentTime = System.currentTimeMillis();
+        boolean isValid = (currentTime - loginTime) < SESSION_EXPIRATION_TIME;
+
+        if (!isValid) {
+            clearUserSession();
+        }
+        return isValid;
+    }
+
+    public String getUserEmail() {
+        return sharedPreferences.getString(KEY_USER_EMAIL, "");
+    }
+
+    public String getUserName() {
+        return sharedPreferences.getString(KEY_USER_NAME, "");
+    }
+
+    public String getUserCreatedAt() {
+        return sharedPreferences.getString(KEY_USER_CREATED_AT, "");
+    }
+
+    public void clearUserSession() {
+        sharedPreferences.edit()
+                .remove(KEY_USER_EMAIL)
+                .remove(KEY_USER_NAME)
+                .remove(KEY_USER_CREATED_AT)
+                .remove(KEY_LOGIN_TIMESTAMP)
+                .apply();
     }
 
     public void saveMyPlaylists(List<Playlist> playlists) {
