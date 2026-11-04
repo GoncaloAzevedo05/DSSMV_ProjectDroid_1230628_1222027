@@ -64,8 +64,10 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     private void loadPlaylistsData() {
+        String userEmail = prefsManager.getUserEmail();
+
         myPlaylistsList = prefsManager.loadMyPlaylists();
-        downloadedPlaylistsList = prefsManager.loadDownloadedPlaylists();
+        downloadedPlaylistsList = prefsManager.loadDownloadedPlaylists(userEmail);
 
         if (myPlaylistsList.isEmpty() && downloadedPlaylistsList.isEmpty()) {
             myPlaylistsList.add(new Playlist("Favorites"));
@@ -73,7 +75,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
             Playlist downloadedMock = new Playlist("1", "Álbum Offline (API)", "", true);
             downloadedPlaylistsList.add(downloadedMock);
-            prefsManager.saveDownloadedPlaylists(downloadedPlaylistsList);
+            prefsManager.saveDownloadedPlaylists(userEmail,downloadedPlaylistsList);
         }
 
         myPlaylistsAdapter = new PlaylistAdapter(myPlaylistsList, new PlaylistAdapter.OnPlaylistListener() {
@@ -125,6 +127,7 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     private void confirmAndDelete(int position, boolean isMyPlaylist) {
+        String userEmail = prefsManager.getUserEmail();
         List<Playlist> targetList = isMyPlaylist ? myPlaylistsList : downloadedPlaylistsList;
         Playlist playlistToDelete = targetList.get(position);
 
@@ -139,7 +142,7 @@ public class PlaylistActivity extends AppCompatActivity {
                         myPlaylistsAdapter.notifyItemRemoved(position);
                         myPlaylistsAdapter.notifyItemRangeChanged(position, myPlaylistsList.size());
                     } else {
-                        prefsManager.saveDownloadedPlaylists(downloadedPlaylistsList);
+                        prefsManager.saveDownloadedPlaylists(userEmail,downloadedPlaylistsList);
                         downloadedPlaylistsAdapter.notifyItemRemoved(position);
                         downloadedPlaylistsAdapter.notifyItemRangeChanged(position, downloadedPlaylistsList.size());
                     }

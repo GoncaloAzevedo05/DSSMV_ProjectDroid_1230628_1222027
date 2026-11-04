@@ -97,20 +97,22 @@ public class PlaylistDetailActivity extends AppCompatActivity {
     }
 
     private void saveToDownloadedAndFinish() {
-        List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists();
+        String userEmail = prefsManager.getUserEmail();
+        List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists(userEmail);
         playlist.setDownloaded(true);
         downloaded.add(playlist);
-        prefsManager.saveDownloadedPlaylists(downloaded);
+        prefsManager.saveDownloadedPlaylists(userEmail, downloaded);
 
         Toast.makeText(this, "Adicionado aos Downloads!", Toast.LENGTH_SHORT).show();
         finish();
     }
 
     private void deletePlaylistAndFinish() {
+        String userEmail = prefsManager.getUserEmail();
         if (playlist.isDownloaded()) {
-            List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists();
+            List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists(userEmail);
             downloaded.removeIf(p -> p.getId().equals(playlist.getId()));
-            prefsManager.saveDownloadedPlaylists(downloaded);
+            prefsManager.saveDownloadedPlaylists(userEmail, downloaded);
         } else {
             List<Playlist> myLists = prefsManager.loadMyPlaylists();
             myLists.removeIf(p -> p.getId().equals(playlist.getId()));

@@ -90,8 +90,9 @@ public class DownloadedSongsActivity extends AppCompatActivity {
 
     private void loadDownloadedSongs() {
         downloadedSongsList = new ArrayList<>();
+        String userEmail = prefsManager.getUserEmail();
 
-        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists();
+        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists(userEmail);
         for (Playlist playlist : downloadedPlaylists) {
             if (playlist.getSongs() != null) {
                 downloadedSongsList.addAll(playlist.getSongs());
@@ -111,7 +112,8 @@ public class DownloadedSongsActivity extends AppCompatActivity {
     }
 
     private void saveLocalSongToDownloads(Song song) {
-        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists();
+        String userEmail = prefsManager.getUserEmail();
+        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists(userEmail);
 
         Playlist localPlaylist = null;
         for (Playlist p : downloadedPlaylists) {
@@ -127,7 +129,11 @@ public class DownloadedSongsActivity extends AppCompatActivity {
             downloadedPlaylists.add(localPlaylist);
         }
 
+        if (localPlaylist.getSongs() == null) {
+            localPlaylist.setSongs(new ArrayList<>());
+        }
+
         localPlaylist.getSongs().add(song);
-        prefsManager.saveDownloadedPlaylists(downloadedPlaylists);
+        prefsManager.saveDownloadedPlaylists(userEmail, downloadedPlaylists);
     }
 }

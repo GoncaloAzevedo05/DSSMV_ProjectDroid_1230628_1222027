@@ -111,7 +111,8 @@ public class SearchResultsActivity extends AppCompatActivity {
         if (query == null) return matchingSongs;
 
         SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
-        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists();
+        String userEmail = prefsManager.getUserEmail();
+        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists(userEmail);
 
         if (downloadedPlaylists != null) {
             for (Playlist playlist : downloadedPlaylists) {

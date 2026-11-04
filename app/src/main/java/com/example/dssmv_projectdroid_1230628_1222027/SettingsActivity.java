@@ -113,6 +113,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         btnDownloadedMusic.setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, DownloadedSongsActivity.class);
+            intent.putExtra("USER_EMAIL", currentProfile != null ? currentProfile.getEmail() : "");
             startActivity(intent);
         });
     }
