@@ -12,14 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import android.widget.ListView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
-import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SearchActivity extends AppCompatActivity {
@@ -53,7 +47,6 @@ public class SearchActivity extends AppCompatActivity {
         txtCurrentFilter = findViewById(R.id.txtCurrentFilter);
         listSearchHistory = findViewById(R.id.listSearchHistory);
 
-
         btnFilter.setOnClickListener(v -> showFilterDialog());
 
         listSearchHistory.setOnItemClickListener((parent, view, position, id) -> {
@@ -79,17 +72,18 @@ public class SearchActivity extends AppCompatActivity {
             return false;
         });
     }
-        private void showFilterDialog() {
-            new AlertDialog.Builder(this)
-                    .setTitle("Filtrar Pesquisa por")
-                    .setSingleChoiceItems(filterOptions, selectedFilterIndex, (dialog, which) -> {
-                        selectedFilterIndex = which;
-                        txtCurrentFilter.setText("Filtro: " + filterOptions[which]);
-                        dialog.dismiss();
-                    })
-                    .setNegativeButton("Cancelar", null)
-                    .show();
-        }
+
+    private void showFilterDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Filtrar Pesquisa por")
+                .setSingleChoiceItems(filterOptions, selectedFilterIndex, (dialog, which) -> {
+                    selectedFilterIndex = which;
+                    txtCurrentFilter.setText("Filtro: " + filterOptions[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
 
     @Override
     protected void onResume() {

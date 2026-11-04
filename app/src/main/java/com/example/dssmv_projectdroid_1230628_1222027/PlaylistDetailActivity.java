@@ -19,8 +19,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
+import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistDetailActivity extends AppCompatActivity {
@@ -82,9 +84,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             Glide.with(this).load(playlist.getImageUrl()).into(imgPlaylistCover);
         }
 
-        songAdapter = new SongAdapter(playlist.getSongs(), song -> {
+        songAdapter = new SongAdapter(playlist.getSongs(), (song, list, position) -> {
             Intent intent = new Intent(PlaylistDetailActivity.this, MusicPlayerActivity.class);
             intent.putExtra("SONG_KEY", song);
+            intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
+            intent.putExtra("CURRENT_INDEX", position);
             startActivity(intent);
         });
 

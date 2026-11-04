@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
-import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import com.example.dssmv_projectdroid_1230628_1222027.R;
 
 import java.util.List;
@@ -19,7 +18,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
     private OnSongClickListener clickListener;
 
     public interface OnSongClickListener {
-        void onSongClick(Song song);
+        void onSongClick(Song song, List<Song> songList, int position);
     }
 
     public SongAdapter(List<Song> songList, OnSongClickListener clickListener) {
@@ -53,7 +52,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
-                clickListener.onSongClick(song);
+                clickListener.onSongClick(song, songList, holder.getAdapterPosition());
             }
         });
     }
@@ -79,10 +78,4 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             txtArtist = itemView.findViewById(R.id.txtArtistName);
         }
     }
-
-
-
-
-
-
 }

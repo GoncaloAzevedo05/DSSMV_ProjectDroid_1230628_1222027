@@ -120,4 +120,18 @@ public class SharedPreferencesManager {
         List<String> savedList = gson.fromJson(json, type);
         return savedList != null ? savedList : new ArrayList<>();
     }
+
+    public void saveFavoriteSongs(List<Song> songs) {
+        String json = new com.google.gson.Gson().toJson(songs);
+        sharedPreferences.edit().putString("FAVORITE_SONGS_KEY", json).apply();
+    }
+
+    public List<Song> loadFavoriteSongs() {
+        String json = sharedPreferences.getString("FAVORITE_SONGS_KEY", null);
+        if (json == null) {
+            return new java.util.ArrayList<>();
+        }
+        java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<Song>>() {}.getType();
+        return new com.google.gson.Gson().fromJson(json, type);
+    }
 }

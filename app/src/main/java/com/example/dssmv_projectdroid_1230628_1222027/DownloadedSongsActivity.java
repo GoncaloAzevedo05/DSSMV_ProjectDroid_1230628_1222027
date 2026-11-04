@@ -98,9 +98,11 @@ public class DownloadedSongsActivity extends AppCompatActivity {
             }
         }
 
-        songAdapter = new SongAdapter(downloadedSongsList, song -> {
+        songAdapter = new SongAdapter(downloadedSongsList, (song, list, position) -> {
             Intent intent = new Intent(DownloadedSongsActivity.this, MusicPlayerActivity.class);
             intent.putExtra("SONG_KEY", song);
+            intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
+            intent.putExtra("CURRENT_INDEX", position);
             startActivity(intent);
         });
 

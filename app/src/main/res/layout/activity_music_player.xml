@@ -144,6 +144,16 @@
                 android:src="@android:drawable/ic_media_next"
                 app:tint="#FFFFFF" />
 
+        <ImageButton
+                android:id="@+id/btnAddToPlaylist"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Adicionar à Playlist"
+                android:src="@android:drawable/ic_menu_add"
+                app:tint="#B3B3B3" />
+
     </LinearLayout>
 
 </LinearLayout>
