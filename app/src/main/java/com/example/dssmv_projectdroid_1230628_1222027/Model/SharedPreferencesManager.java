@@ -86,16 +86,21 @@ public class SharedPreferencesManager {
         return gson.fromJson(json, type);
     }
 
-    public void saveDownloadedPlaylists(List<Playlist> playlists) {
+    public void saveDownloadedPlaylists(String userEmail,List<Playlist> playlists) {
+        if (userEmail == null || userEmail.isEmpty()) return;
+        String key = KEY_DOWNLOADED_PLAYLISTS + "_" + userEmail;
         String json = gson.toJson(playlists);
-        sharedPreferences.edit().putString(KEY_DOWNLOADED_PLAYLISTS, json).apply();
+        sharedPreferences.edit().putString(key, json).apply();
     }
 
-    public List<Playlist> loadDownloadedPlaylists() {
-        String json = sharedPreferences.getString(KEY_DOWNLOADED_PLAYLISTS, null);
+    public List<Playlist> loadDownloadedPlaylists(String userEmail) {
+        if (userEmail == null || userEmail.isEmpty()) return new ArrayList<>();
+        String key = KEY_DOWNLOADED_PLAYLISTS + "_" + userEmail;
+        String json = sharedPreferences.getString(key, null);
         if (json == null) return new ArrayList<>();
         Type type = new TypeToken<ArrayList<Playlist>>() {}.getType();
-        return gson.fromJson(json, type);
+        List<Playlist> list = gson.fromJson(json, type);
+        return list != null ? list : new ArrayList<>();
     }
 
     public void saveSearchQuery(String query) {

@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.dssmv_projectdroid_1230628_1222027.ApiData.AuthResponse;
 import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserCred;
+import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
 import com.google.android.material.button.MaterialButton;
@@ -26,7 +27,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -118,10 +122,28 @@ public class RegisterActivity extends AppCompatActivity {
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 showLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
+                    AuthResponse auth = response.body();
+
+                    String userEmail = email;
+                    String userName = username;
+                    String userCreatedAt = "";
+
+                    if (auth.getUser() != null && auth.getUser().getCreatedAt() != null && !auth.getUser().getCreatedAt().isEmpty()) {
+                        userCreatedAt = auth.getUser().getCreatedAt();
+                    } else {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-DD", Locale.getDefault());
+                        userCreatedAt = sdf.format(new Date());
+                    }
+
+                    SharedPreferencesManager prefsManager = new SharedPreferencesManager(RegisterActivity.this);
+                    prefsManager.saveUserSession(userEmail, userName, userCreatedAt);
+
                     Toast.makeText(RegisterActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
 
                     Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                     intent.putExtra("USER_EMAIL", email);
+                    intent.putExtra("USER_NAME", userName);
+                    intent.putExtra("USER_CREATED_AT", userCreatedAt);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
