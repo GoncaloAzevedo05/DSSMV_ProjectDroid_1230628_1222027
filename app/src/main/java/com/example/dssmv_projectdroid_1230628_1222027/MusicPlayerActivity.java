@@ -41,6 +41,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private Song currentSong;
     private String audioUrl = "";
 
+    private SharedPreferencesManager prefsManager;
+
     private final Handler handler = new Handler();
     private final Runnable updateSeekBar = new Runnable() {
         @Override
@@ -64,6 +66,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        prefsManager = new SharedPreferencesManager(this);
 
         imgAlbumCover = findViewById(R.id.imgAlbumCover);
         txtSongTitle = findViewById(R.id.txtSongTitle);
@@ -242,8 +246,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     private void checkIfFavorite(Song song) {
+        String userEmail = prefsManager.getUserEmail();
         SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
-        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs();
+        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
 
         isFavorite = false;
         if (favoriteSongs != null) {
@@ -263,8 +268,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     private void toggleFavoriteStatus(Song song) {
+        String userEmail = prefsManager.getUserEmail();
         SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
-        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs();
+        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
         if (favoriteSongs == null) {
             favoriteSongs = new ArrayList<>();
         }
@@ -285,12 +291,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
             isFavorite = false;
         }
 
-        prefsManager.saveFavoriteSongs(favoriteSongs);
+        prefsManager.saveFavoriteSongs(userEmail, favoriteSongs);
     }
 
     private void showAddPlaylistDialog(Song song) {
         SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
-        List<Playlist> myPlaylists = prefsManager.loadMyPlaylists();
+        String userEmail = prefsManager.getUserEmail();
+        List<Playlist> myPlaylists = prefsManager.loadMyPlaylists(userEmail);
 
         if (myPlaylists == null || myPlaylists.isEmpty()) {
             Toast.makeText(this, "Ainda não tens playlists criadas.", Toast.LENGTH_SHORT).show();
@@ -316,7 +323,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
             if (!exists) {
                 selectedPlaylist.getSongs().add(song);
-                prefsManager.saveMyPlaylists(myPlaylists);
+                prefsManager.saveMyPlaylists(userEmail, myPlaylists);
                 Toast.makeText(this, "Adicionada a " + selectedPlaylist.getTitle(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "A música já faz parte desta playlist.", Toast.LENGTH_SHORT).show();

@@ -41,8 +41,20 @@ public class FavoritesActivity extends AppCompatActivity {
         loadFavorites();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadFavorites();
+    }
+
     private void loadFavorites() {
-        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs();
+        String userEmail = prefsManager.getUserEmail();
+        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
+
+        if (favoriteSongs == null) {
+            favoriteSongs = new ArrayList<>();
+        }
+
         SongAdapter adapter = new SongAdapter(favoriteSongs, (song, list, position) -> {
             Intent intent = new Intent(FavoritesActivity.this, MusicPlayerActivity.class);
             intent.putExtra("SONG_KEY", song);

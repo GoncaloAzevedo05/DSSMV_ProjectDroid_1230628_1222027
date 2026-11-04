@@ -114,9 +114,9 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             downloaded.removeIf(p -> p.getId().equals(playlist.getId()));
             prefsManager.saveDownloadedPlaylists(userEmail, downloaded);
         } else {
-            List<Playlist> myLists = prefsManager.loadMyPlaylists();
+            List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
             myLists.removeIf(p -> p.getId().equals(playlist.getId()));
-            prefsManager.saveMyPlaylists(myLists);
+            prefsManager.saveMyPlaylists(userEmail, myLists);
         }
         Toast.makeText(this, "Playlist removida.", Toast.LENGTH_SHORT).show();
         finish();

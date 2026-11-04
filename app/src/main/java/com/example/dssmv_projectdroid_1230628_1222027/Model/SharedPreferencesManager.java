@@ -71,19 +71,24 @@ public class SharedPreferencesManager {
                 .apply();
     }
 
-    public void saveMyPlaylists(List<Playlist> playlists) {
+    public void saveMyPlaylists(String userEmail, List<Playlist> playlists) {
+        if (userEmail == null || userEmail.isEmpty()) return;
+        String key = KEY_MY_PLAYLISTS + "_" + userEmail;
         String json = gson.toJson(playlists);
-        sharedPreferences.edit().putString(KEY_MY_PLAYLISTS, json).apply();
+        sharedPreferences.edit().putString(key, json).apply();
     }
 
-    public List<Playlist> loadMyPlaylists() {
-        String json = sharedPreferences.getString(KEY_MY_PLAYLISTS, null);
+    public List<Playlist> loadMyPlaylists(String userEmail) {
+        if (userEmail == null || userEmail.isEmpty()) return new ArrayList<>();
+        String key = KEY_MY_PLAYLISTS + "_" + userEmail;
+        String json = sharedPreferences.getString(key, null);
         if (json == null) {
             return new ArrayList<>();
         }
 
         Type type = new TypeToken<ArrayList<Playlist>>() {}.getType();
-        return gson.fromJson(json, type);
+        List<Playlist> list = gson.fromJson(json, type);
+        return list != null ? list : new ArrayList<>();
     }
 
     public void saveDownloadedPlaylists(String userEmail,List<Playlist> playlists) {
@@ -126,13 +131,17 @@ public class SharedPreferencesManager {
         return savedList != null ? savedList : new ArrayList<>();
     }
 
-    public void saveFavoriteSongs(List<Song> songs) {
+    public void saveFavoriteSongs(String userEmail, List<Song> songs) {
+        if (userEmail == null || userEmail.isEmpty()) return;
+        String key = "favorite_songs_" + userEmail;
         String json = new com.google.gson.Gson().toJson(songs);
-        sharedPreferences.edit().putString("FAVORITE_SONGS_KEY", json).apply();
+        sharedPreferences.edit().putString(key, json).apply();
     }
 
-    public List<Song> loadFavoriteSongs() {
-        String json = sharedPreferences.getString("FAVORITE_SONGS_KEY", null);
+    public List<Song> loadFavoriteSongs(String userEmail) {
+        if (userEmail == null || userEmail.isEmpty()) return new ArrayList<>();
+        String key = "favorite_songs_" + userEmail;
+        String json = sharedPreferences.getString(key, null);
         if (json == null) {
             return new java.util.ArrayList<>();
         }

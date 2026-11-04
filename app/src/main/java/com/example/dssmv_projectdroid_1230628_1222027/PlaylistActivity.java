@@ -66,12 +66,12 @@ public class PlaylistActivity extends AppCompatActivity {
     private void loadPlaylistsData() {
         String userEmail = prefsManager.getUserEmail();
 
-        myPlaylistsList = prefsManager.loadMyPlaylists();
+        myPlaylistsList = prefsManager.loadMyPlaylists(userEmail);
         downloadedPlaylistsList = prefsManager.loadDownloadedPlaylists(userEmail);
 
         if (myPlaylistsList.isEmpty() && downloadedPlaylistsList.isEmpty()) {
             myPlaylistsList.add(new Playlist("Favorites"));
-            prefsManager.saveMyPlaylists(myPlaylistsList);
+            prefsManager.saveMyPlaylists(userEmail, myPlaylistsList);
 
             Playlist downloadedMock = new Playlist("1", "Álbum Offline (API)", "", true);
             downloadedPlaylistsList.add(downloadedMock);
@@ -138,7 +138,7 @@ public class PlaylistActivity extends AppCompatActivity {
                     targetList.remove(position);
 
                     if (isMyPlaylist) {
-                        prefsManager.saveMyPlaylists(myPlaylistsList);
+                        prefsManager.saveMyPlaylists(userEmail, myPlaylistsList);
                         myPlaylistsAdapter.notifyItemRemoved(position);
                         myPlaylistsAdapter.notifyItemRangeChanged(position, myPlaylistsList.size());
                     } else {
@@ -162,10 +162,11 @@ public class PlaylistActivity extends AppCompatActivity {
                 .setPositiveButton("Create", (dialog, which) -> {
                     String name = input.getText().toString().trim();
                     if (!name.isEmpty()) {
+                        String userEmail = prefsManager.getUserEmail();
                         Playlist newPlaylist = new Playlist(name);
                         myPlaylistsList.add(newPlaylist);
 
-                        prefsManager.saveMyPlaylists(myPlaylistsList);
+                        prefsManager.saveMyPlaylists(userEmail, myPlaylistsList);
 
                         myPlaylistsAdapter.notifyItemInserted(myPlaylistsList.size() - 1);
                         Toast.makeText(this, "Playlist criada!", Toast.LENGTH_SHORT).show();
