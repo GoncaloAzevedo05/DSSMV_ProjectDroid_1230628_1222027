@@ -18,9 +18,17 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.PlaylistReq;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserFavoriteReq;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -284,11 +292,36 @@ public class MusicPlayerActivity extends AppCompatActivity {
             }
         }
 
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+
         if (!found) {
             favoriteSongs.add(song);
             isFavorite = true;
+            UserFavoriteReq favoriteReq = new UserFavoriteReq(
+                    userEmail,
+                    song.getId(),
+                    song.getTitle(),
+                    song.getArtist(),
+                    song.getAudioUrl(),
+                    song.getImageUrl()
+            );
+
+            api.addFavorite("Bearer " + SupaBaseClient.getApiKey(), favoriteReq).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {}
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {}
+            });
         } else {
             isFavorite = false;
+            api.removeFavorite("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail, "eq." + song.getId()).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {}
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {}
+            });
         }
 
         prefsManager.saveFavoriteSongs(userEmail, favoriteSongs);
@@ -313,6 +346,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
         builder.setTitle("Adicionar à Playlist");
         builder.setItems(playlistNames, (dialog, which) -> {
             Playlist selectedPlaylist = myPlaylists.get(which);
+            if (selectedPlaylist.getSongs() == null) {
+                selectedPlaylist.setSongs(new ArrayList<>());
+            }
             boolean exists = false;
             for (Song s : selectedPlaylist.getSongs()) {
                 if (s.getId().equals(song.getId())) {
@@ -324,6 +360,28 @@ public class MusicPlayerActivity extends AppCompatActivity {
             if (!exists) {
                 selectedPlaylist.getSongs().add(song);
                 prefsManager.saveMyPlaylists(userEmail, myPlaylists);
+
+                SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+                PlaylistReq playlistReq = new PlaylistReq(
+                        userEmail,
+                        selectedPlaylist.getTitle(),
+                        selectedPlaylist.getImageUrl(),
+                        selectedPlaylist.isDownloaded(),
+                        selectedPlaylist.getSongs()
+                );
+
+                api.syncPlaylist("Bearer " + SupaBaseClient.getApiKey(), playlistReq)
+                        .enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                if (response.isSuccessful()) {
+                                    Toast.makeText(MusicPlayerActivity.this, "Música sincronizada no Supabase!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {}
+                        });
                 Toast.makeText(this, "Adicionada a " + selectedPlaylist.getTitle(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "A música já faz parte desta playlist.", Toast.LENGTH_SHORT).show();

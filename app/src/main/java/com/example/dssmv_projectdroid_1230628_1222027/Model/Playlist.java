@@ -30,7 +30,12 @@ public class Playlist implements Serializable{
     public String getTitle() { return title; }
     public String getImageUrl() { return imageUrl; }
     public boolean isDownloaded() { return isDownloaded; }
-    public List<Song> getSongs() { return songs; }
+    public List<Song> getSongs() {
+        if (this.songs == null) {
+            this.songs = new ArrayList<>();
+        }
+        return this.songs;
+    }
 
 
 
@@ -38,8 +43,19 @@ public class Playlist implements Serializable{
     public void setTitle(String title) { this.title = title; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setDownloaded(boolean downloaded) { isDownloaded = downloaded; }
-    public void setSongs(List<Song> songs) { this.songs = songs; }
+    public void setSongs(List<Song> songs) {
+        if (songs == null) {
+            this.songs = new ArrayList<>();
+        } else {
+            this.songs = songs;
+        }
+    }
 
     public int getSongCount() { return songs.size(); }
-    public void addSong(Song song) { songs.add(song); }
+    public void addSong(Song song) {
+        if (this.songs == null) {
+            this.songs = new ArrayList<>();
+        }
+        this.songs.add(song);
+    }
 }

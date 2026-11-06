@@ -12,10 +12,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserFavoriteResponse;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import com.example.dssmv_projectdroid_1230628_1222027.MusicPlayerActivity;
 import com.example.dssmv_projectdroid_1230628_1222027.R;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +51,7 @@ public class FavoritesActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadFavorites();
+        fetchRemoteFavorites();
     }
 
     private void loadFavorites() {
@@ -67,5 +74,33 @@ public class FavoritesActivity extends AppCompatActivity {
             recyclerFavorites.setLayoutManager(new LinearLayoutManager(this));
             recyclerFavorites.setAdapter(adapter);
         }
+    }
+
+    private void fetchRemoteFavorites() {
+        String userEmail = prefsManager.getUserEmail();
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+
+        api.getUserFavorites("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail)
+                .enqueue(new Callback<List<UserFavoriteResponse>>() {
+                    @Override
+                    public void onResponse(Call<List<UserFavoriteResponse>> call, Response<List<UserFavoriteResponse>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<Song> remoteFavorites = new ArrayList<>();
+                            for (UserFavoriteResponse item : response.body()) {
+                                Song s = new Song(
+                                        item.getSongId(),
+                                        item.getSongTitle(),
+                                        item.getArtistName(),
+                                        item.getAudioUrl()
+                                );
+                                remoteFavorites.add(s);
+                            }
+                            prefsManager.saveFavoriteSongs(userEmail, remoteFavorites);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<UserFavoriteResponse>> call, Throwable t) {}
+                });
     }
 }

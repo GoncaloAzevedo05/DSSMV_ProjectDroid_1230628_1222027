@@ -15,10 +15,18 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.PlaylistAdapter;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.PlaylistReq;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.PlaylistResponse;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +69,7 @@ public class PlaylistActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadPlaylistsData();
+        fetchRemotePlaylists();
     }
 
     private void loadPlaylistsData() {
@@ -167,12 +176,72 @@ public class PlaylistActivity extends AppCompatActivity {
                         myPlaylistsList.add(newPlaylist);
 
                         prefsManager.saveMyPlaylists(userEmail, myPlaylistsList);
-
                         myPlaylistsAdapter.notifyItemInserted(myPlaylistsList.size() - 1);
-                        Toast.makeText(this, "Playlist criada!", Toast.LENGTH_SHORT).show();
+
+                        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+                        PlaylistReq playlistReq = new PlaylistReq(
+                                userEmail,
+                                newPlaylist.getTitle(),
+                                newPlaylist.getImageUrl(),
+                                false,
+                                newPlaylist.getSongs()
+                        );
+
+
+                        api.syncPlaylist(SupaBaseClient.getApiKey(), playlistReq)
+                                .enqueue(new Callback<ResponseBody>() {
+                                    @Override
+                                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                        if (response.isSuccessful()) {
+                                            Toast.makeText(PlaylistActivity.this, "Playlist sincronizada com a nuvem!", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(PlaylistActivity.this, "Playlist guardada offline.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                        Toast.makeText(PlaylistActivity.this, "Playlist guardada offline.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    } else {
+                        Toast.makeText(this, "O nome não pode estar vazio", Toast.LENGTH_SHORT).show();
                     }
                 })
+
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void fetchRemotePlaylists() {
+        String userEmail = prefsManager.getUserEmail();
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+
+        api.getUserPlaylists("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail)
+                .enqueue(new Callback<List<PlaylistResponse>>() {
+                    @Override
+                    public void onResponse(Call<List<PlaylistResponse>> call, Response<List<PlaylistResponse>> response) {
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            List<Playlist> remotePlaylists = new ArrayList<>();
+                            for (PlaylistResponse item : response.body()) {
+                                Playlist p = new Playlist(item.getTitle());
+                                p.setImageUrl(item.getImageUrl());
+                                if (item.getSongs() != null) {
+                                    p.setSongs(item.getSongs());
+                                }
+                                remotePlaylists.add(p);
+                            }
+
+                            myPlaylistsList.clear();
+                            myPlaylistsList.addAll(remotePlaylists);
+                            prefsManager.saveMyPlaylists(userEmail, myPlaylistsList);
+                            myPlaylistsAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<PlaylistResponse>> call, Throwable t) {
+                    }
+                });
     }
 }

@@ -13,7 +13,16 @@ public class Song implements Serializable{
         this.id = id;
         this.title = title;
         this.artist = artist;
-        this.audioUrl = audioUrl;;
+        this.audioUrl = audioUrl;
+        this.imageUrl = "";
+    }
+
+    public Song(String id, String title, String artist, String audioUrl, String imageUrl) {
+        this.id = id;
+        this.title = title;
+        this.artist = artist;
+        this.audioUrl = audioUrl;
+        this.imageUrl = imageUrl;
     }
 
 
@@ -22,5 +31,10 @@ public class Song implements Serializable{
     public String getArtist() { return artist; }
     public String getAudioUrl() { return audioUrl; }
     public String getImageUrl() { return imageUrl; }
-    public void setAudioUrl(String audioUrl) {this.audioUrl = audioUrl;}
+
+    public void setId(String id) { this.id = id; }
+    public void setTitle(String title) { this.title = title; }
+    public void setArtist(String artist) { this.artist = artist; }
+    public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

@@ -13,26 +13,22 @@ public class SupaBaseClient {
 
     private static final String BASE_URL = "https://yeagosapoqkuzioubdpf.supabase.co/";
 
-    private static final String API_KEY = "sb_publishable_qkQzpjqWtyLsYLLa-obcNw_sn9XdPy_";
+    private static final String API_KEY = SupaBaseInterface.SUPABASE_KEY;
 
     public static Retrofit getClient() {
         if (retrofit == null) {
 
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
             Interceptor headerInterceptor = chain -> {
-                Request request = chain.request().newBuilder()
+                Request original = chain.request();
+                Request.Builder builder = original.newBuilder()
                         .addHeader("apikey", API_KEY)
-                        .addHeader("Authorization", "Bearer " + API_KEY)
-                        .addHeader("Content-Type", "application/json")
-                        .build();
-                return chain.proceed(request);
+                        .addHeader("Content-Type", "application/json");
+
+                return chain.proceed(builder.build());
             };
 
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(headerInterceptor)
-                    .addInterceptor(logging)
                     .build();
 
             retrofit = new Retrofit.Builder()
@@ -42,5 +38,8 @@ public class SupaBaseClient {
                     .build();
         }
         return retrofit;
+    }
+    public static String getApiKey() {
+        return API_KEY;
     }
 }
