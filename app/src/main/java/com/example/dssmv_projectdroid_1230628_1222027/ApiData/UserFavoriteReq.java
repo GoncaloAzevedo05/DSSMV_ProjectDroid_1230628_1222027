@@ -29,4 +29,10 @@ public class UserFavoriteReq {
         this.audioUrl = audioUrl;
         this.imageUrl = imageUrl;
     }
+    public String getUserId() { return userId; }
+    public String getSongId() { return songId; }
+    public String getSongTitle() { return songTitle; }
+    public String getArtistName() { return artistName; }
+    public String getAudioUrl() { return audioUrl; }
+    public String getImageUrl() { return imageUrl; }
 }

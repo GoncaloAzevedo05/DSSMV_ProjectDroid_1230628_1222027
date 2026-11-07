@@ -217,7 +217,7 @@ public class PlaylistActivity extends AppCompatActivity {
         String userEmail = prefsManager.getUserEmail();
         SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
 
-        api.getUserPlaylists("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail)
+        api.getUserPlaylists(SupaBaseClient.getApiKey(), "eq." + userEmail)
                 .enqueue(new Callback<List<PlaylistResponse>>() {
                     @Override
                     public void onResponse(Call<List<PlaylistResponse>> call, Response<List<PlaylistResponse>> response) {

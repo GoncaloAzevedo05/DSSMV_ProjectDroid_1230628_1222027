@@ -29,6 +29,8 @@ import java.util.List;
 public class FavoritesActivity extends AppCompatActivity {
     private RecyclerView recyclerFavorites;
     private SharedPreferencesManager prefsManager;
+    private SongAdapter adapter;
+    private List<Song> favoriteSongsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +46,9 @@ public class FavoritesActivity extends AppCompatActivity {
         prefsManager = new SharedPreferencesManager(this);
         recyclerFavorites = findViewById(R.id.recyclerFavorites);
 
-        loadFavorites();
+        if (recyclerFavorites != null) {
+            recyclerFavorites.setLayoutManager(new LinearLayoutManager(this));
+        }
     }
 
     @Override
@@ -56,13 +60,14 @@ public class FavoritesActivity extends AppCompatActivity {
 
     private void loadFavorites() {
         String userEmail = prefsManager.getUserEmail();
-        List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
+        List<Song> localSongs = prefsManager.loadFavoriteSongs(userEmail);
 
-        if (favoriteSongs == null) {
-            favoriteSongs = new ArrayList<>();
+        favoriteSongsList.clear();
+        if (localSongs != null && !localSongs.isEmpty()) {
+            favoriteSongsList.addAll(localSongs);
         }
 
-        SongAdapter adapter = new SongAdapter(favoriteSongs, (song, list, position) -> {
+        SongAdapter adapter = new SongAdapter(favoriteSongsList, (song, list, position) -> {
             Intent intent = new Intent(FavoritesActivity.this, MusicPlayerActivity.class);
             intent.putExtra("SONG_KEY", song);
             intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
@@ -71,31 +76,37 @@ public class FavoritesActivity extends AppCompatActivity {
         });
 
         if (recyclerFavorites != null) {
-            recyclerFavorites.setLayoutManager(new LinearLayoutManager(this));
             recyclerFavorites.setAdapter(adapter);
         }
     }
 
     private void fetchRemoteFavorites() {
         String userEmail = prefsManager.getUserEmail();
+        if (userEmail == null || userEmail.isEmpty()) return;
         SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
 
-        api.getUserFavorites("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail)
+        api.getUserFavorites(SupaBaseClient.getApiKey(), "eq." + userEmail)
                 .enqueue(new Callback<List<UserFavoriteResponse>>() {
                     @Override
                     public void onResponse(Call<List<UserFavoriteResponse>> call, Response<List<UserFavoriteResponse>> response) {
-                        if (response.isSuccessful() && response.body() != null) {
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                             List<Song> remoteFavorites = new ArrayList<>();
                             for (UserFavoriteResponse item : response.body()) {
-                                Song s = new Song(
-                                        item.getSongId(),
-                                        item.getSongTitle(),
-                                        item.getArtistName(),
-                                        item.getAudioUrl()
-                                );
+                                String id = item.getSongId() != null ? item.getSongId() : "";
+                                String title = item.getSongTitle() != null ? item.getSongTitle() : "";
+                                String artist = item.getArtistName() != null ? item.getArtistName() : "";
+                                String audio = item.getAudioUrl() != null ? item.getAudioUrl() : "";
+                                String image = item.getImageUrl() != null ? item.getImageUrl() : "";
+
+                                Song s = new Song(id, title, artist, audio, image);
                                 remoteFavorites.add(s);
                             }
                             prefsManager.saveFavoriteSongs(userEmail, remoteFavorites);
+                            favoriteSongsList.clear();
+                            favoriteSongsList.addAll(remoteFavorites);
+                            if (adapter != null) {
+                                adapter.notifyDataSetChanged();
+                            }
                         }
                     }
 

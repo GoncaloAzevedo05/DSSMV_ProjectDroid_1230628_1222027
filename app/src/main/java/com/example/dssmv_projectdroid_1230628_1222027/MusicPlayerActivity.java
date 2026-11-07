@@ -255,7 +255,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     private void checkIfFavorite(Song song) {
         String userEmail = prefsManager.getUserEmail();
-        SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
         List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
 
         isFavorite = false;
@@ -277,7 +276,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     private void toggleFavoriteStatus(Song song) {
         String userEmail = prefsManager.getUserEmail();
-        SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
         List<Song> favoriteSongs = prefsManager.loadFavoriteSongs(userEmail);
         if (favoriteSongs == null) {
             favoriteSongs = new ArrayList<>();
@@ -298,26 +296,43 @@ public class MusicPlayerActivity extends AppCompatActivity {
             favoriteSongs.add(song);
             isFavorite = true;
             UserFavoriteReq favoriteReq = new UserFavoriteReq(
-                    userEmail,
-                    song.getId(),
-                    song.getTitle(),
-                    song.getArtist(),
-                    song.getAudioUrl(),
-                    song.getImageUrl()
+                    userEmail != null ? userEmail : "",
+                    song.getId() != null ? song.getId() : "",
+                    song.getTitle() != null ? song.getTitle() : "",
+                    song.getArtist() != null ? song.getArtist() : "",
+                    song.getAudioUrl() != null ? song.getAudioUrl() : "",
+                    song.getImageUrl() != null ? song.getImageUrl() : ""
             );
 
             api.addFavorite("Bearer " + SupaBaseClient.getApiKey(), favoriteReq).enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {}
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(MusicPlayerActivity.this, "Favorito guardado na nuvem!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        try {
+                            String err = response.errorBody() != null ? response.errorBody().string() : "";
+                            android.util.Log.e("FAVORITE_ERR", "Erro " + response.code() + ": " + err);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
 
                 @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {}
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    android.util.Log.e("FAVORITE_FALHA", "Falha de rede: " + t.getMessage());
+                }
             });
         } else {
             isFavorite = false;
             api.removeFavorite("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail, "eq." + song.getId()).enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {}
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(MusicPlayerActivity.this, "Favorito removido da nuvem!", Toast.LENGTH_SHORT).show();
+                    }
+                }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {}
