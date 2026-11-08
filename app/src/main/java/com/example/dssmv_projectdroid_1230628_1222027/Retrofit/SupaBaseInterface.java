@@ -44,7 +44,7 @@ public interface SupaBaseInterface {
     @Headers({
             "Prefer: resolution=merge-duplicates"
     })
-    @POST("rest/v1/playlists")
+    @POST("rest/v1/playlists?on_conflict=user_id,title")
     Call<ResponseBody> syncPlaylist(
             @Header("Authorization") String bearerToken,
             @Body Object playlistData

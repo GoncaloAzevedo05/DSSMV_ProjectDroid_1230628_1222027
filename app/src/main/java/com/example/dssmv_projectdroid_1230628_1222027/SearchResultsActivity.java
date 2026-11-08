@@ -1,8 +1,8 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -12,13 +12,21 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.SpotifySearchResponse;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.RetrofitClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SpotifyAPIService;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SearchResultsActivity extends AppCompatActivity {
 
@@ -26,6 +34,9 @@ public class SearchResultsActivity extends AppCompatActivity {
     private RecyclerView recyclerResults;
     private SongAdapter songAdapter;
     private List<Song> songResults;
+
+    private static final String RAPID_API_KEY = BuildConfig.RAPID_API_KEY;
+    private static final String RAPID_API_HOST = "spotify23.p.rapidapi.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +54,26 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         songResults = new ArrayList<>();
 
-        songAdapter = new SongAdapter(songResults, (song, list, position) -> {
-            Intent intent = new Intent(SearchResultsActivity.this, MusicPlayerActivity.class);
-            intent.putExtra("SONG_KEY", song);
-            intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
-            intent.putExtra("CURRENT_INDEX", position);
-            startActivity(intent);
-        });
+        songAdapter = new SongAdapter(
+                songResults,
+                (song, list, position) -> {
+                    if (getIntent().getBooleanExtra("IS_SELECTION_MODE", false)) {
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("SELECTED_SONG", song);
+                        setResult(RESULT_OK, resultIntent);
+                        finish();
+                    } else {
+                        Intent intent = new Intent(SearchResultsActivity.this, MusicPlayerActivity.class);
+                        intent.putExtra("SONG_KEY", song);
+                        intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
+                        intent.putExtra("CURRENT_INDEX", position);
+                        startActivity(intent);
+                    }
+                },
+                (song, position) -> {
+                    showAlbumOptionsDialog(song);
+                }
+        );
 
         recyclerResults.setLayoutManager(new LinearLayoutManager(this));
         recyclerResults.setAdapter(songAdapter);
@@ -59,79 +83,93 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         if (query != null) {
             txtSearchTitle.setText("Resultados para: \"" + query + "\"");
-            performSearch(query);
+            performSearch(query, filterType);
         }
     }
 
-    private void performSearch(String query) {
-        songResults = new ArrayList<>();
+    private void showAlbumOptionsDialog(Song selectedSong) {
+        CharSequence[] options = new CharSequence[]{
+                "Entrar no Álbum",
+                "Adicionar aos Downloaded Playlists"
+        };
 
-        List<Song> localMatches = searchLocalSongs(query);
-        if (localMatches != null && !localMatches.isEmpty()) {
-            songResults.addAll(localMatches);
-        }
+        new AlertDialog.Builder(this)
+                .setTitle("Opções do Álbum")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        Intent intent = new Intent(SearchResultsActivity.this, PlaylistActivity.class);
+                        intent.putExtra("ALBUM_TITLE", selectedSong.getArtist());
+                        startActivity(intent);
 
-        List<Song> mockDatabase = new ArrayList<>();
-        mockDatabase.add(new Song("101", "Blinding Lights", "The Weeknd", "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300"));
-        mockDatabase.add(new Song("102", "Starboy", "The Weeknd", "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300"));
-        mockDatabase.add(new Song("103", "Save Your Tears", "The Weeknd", "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300"));
-        mockDatabase.add(new Song("104", "Shape of You", "Ed Sheeran", "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300"));
-        mockDatabase.add(new Song("105", "Bohemian Rhapsody", "Queen", "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300"));
-
-        String searchQuery = query.toLowerCase().trim();
-        for (Song song : mockDatabase) {
-            String title = song.getTitle() != null ? song.getTitle().toLowerCase() : "";
-            String artist = song.getArtist() != null ? song.getArtist().toLowerCase() : "";
-
-            if (title.contains(searchQuery) || artist.contains(searchQuery)) {
-                boolean exists = false;
-                for (Song s : songResults) {
-                    if (s.getId() != null && s.getId().equals(song.getId())) {
-                        exists = true;
-                        break;
+                    } else if (which == 1) {
+                        saveAlbumToDownloads(selectedSong);
                     }
-                }
-                if (!exists) {
-                    songResults.add(song);
-                }
+                })
+                .show();
+    }
+
+    private void saveAlbumToDownloads(Song song) {
+        SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
+        String userEmail = prefsManager.getUserEmail();
+
+        List<Song> albumSongs = new ArrayList<>();
+        for (Song s : songResults) {
+            if (s.getImageUrl() != null && s.getImageUrl().equals(song.getImageUrl())) {
+                albumSongs.add(s);
             }
         }
-
-        if (songResults.isEmpty()) {
-            Toast.makeText(this, "Nenhum resultado encontrado.", Toast.LENGTH_SHORT).show();
+        if (albumSongs.isEmpty()) {
+            albumSongs.add(song);
         }
 
-        if (songAdapter != null) {
-            songAdapter.setSongs(songResults);
+        Playlist downloadedAlbum = new Playlist(
+                "album_" + System.currentTimeMillis(),
+                "Álbum de " + song.getArtist(),
+                song.getImageUrl(),
+                true
+        );
+
+        downloadedAlbum.setSongs(albumSongs);
+
+        List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists(userEmail);
+        if (downloadedPlaylists == null) {
+            downloadedPlaylists = new ArrayList<>();
         }
+
+        downloadedPlaylists.add(downloadedAlbum);
+        prefsManager.saveDownloadedPlaylists(userEmail, downloadedPlaylists);
+
+        Toast.makeText(this, "Álbum guardado com sucesso!", Toast.LENGTH_SHORT).show();
     }
 
-    private List<Song> searchLocalSongs(String query) {
-        List<Song> matchingSongs = new ArrayList<>();
-        if (query == null) return matchingSongs;
+    private void performSearch(String query, String filterType) {
+        songResults = new ArrayList<>();
+        if (query == null) query = "";
+        final String searchQuery = query.toLowerCase().trim();
+
+        if (filterType == null || filterType.isEmpty()) {
+            filterType = "all";
+        }
 
         SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
         String userEmail = prefsManager.getUserEmail();
+
         List<Playlist> downloadedPlaylists = prefsManager.loadDownloadedPlaylists(userEmail);
+        List<Playlist> myPlaylists = prefsManager.loadMyPlaylists(userEmail);
 
-        if (downloadedPlaylists != null) {
-            for (Playlist playlist : downloadedPlaylists) {
-                if (playlist != null && playlist.getSongs() != null) {
-                    for (Song song : playlist.getSongs()) {
-                        if (song != null) {
-                            String title = song.getTitle() != null ? song.getTitle().toLowerCase() : "";
-                            String artist = song.getArtist() != null ? song.getArtist().toLowerCase() : "";
+        if (filterType.equals("all") || filterType.equals("playlists") || filterType.equals("multi")) {
+            List<Playlist> allPlaylists = new ArrayList<>();
+            if (downloadedPlaylists != null) allPlaylists.addAll(downloadedPlaylists);
+            if (myPlaylists != null) allPlaylists.addAll(myPlaylists);
 
-                            if (title.contains(query.toLowerCase()) || artist.contains(query.toLowerCase())) {
-                                boolean exists = false;
-                                for (Song s : matchingSongs) {
-                                    if (s.getId() != null && s.getId().equals(song.getId())) {
-                                        exists = true;
-                                        break;
-                                    }
-                                }
-                                if (!exists) {
-                                    matchingSongs.add(song);
+            for (Playlist playlist : allPlaylists) {
+                if (playlist != null && playlist.getTitle() != null) {
+                    String playlistTitle = playlist.getTitle().toLowerCase();
+                    if (playlistTitle.contains(searchQuery)) {
+                        if (playlist.getSongs() != null) {
+                            for (Song song : playlist.getSongs()) {
+                                if (song != null && !songResults.contains(song)) {
+                                    songResults.add(song);
                                 }
                             }
                         }
@@ -139,6 +177,76 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             }
         }
-        return matchingSongs;
+
+        SpotifyAPIService apiService = RetrofitClient.getClient().create(SpotifyAPIService.class);
+
+        Call<SpotifySearchResponse> call = apiService.searchSpotify(RAPID_API_KEY, RAPID_API_HOST, searchQuery, "albums");
+
+        call.enqueue(new Callback<SpotifySearchResponse>() {
+            @Override
+            public void onResponse(Call<SpotifySearchResponse> call, Response<SpotifySearchResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    SpotifySearchResponse searchResponse = response.body();
+
+                    if (searchResponse.getAlbums() != null && searchResponse.getAlbums().getItems() != null) {
+                        for (SpotifySearchResponse.AlbumEdge edge : searchResponse.getAlbums().getItems()) {
+                            SpotifySearchResponse.AlbumData album = edge.getData();
+                            if (album != null) {
+                                String coverUrl = "";
+                                if (album.getCoverArt() != null && album.getCoverArt().getSources() != null && !album.getCoverArt().getSources().isEmpty()) {
+                                    coverUrl = album.getCoverArt().getSources().get(0).getUrl();
+                                }
+
+                                String artistName = "Desconhecido";
+                                if (album.getArtists() != null && album.getArtists().getItems() != null && !album.getArtists().getItems().isEmpty()) {
+                                    if (album.getArtists().getItems().get(0).getProfile() != null) {
+                                        artistName = album.getArtists().getItems().get(0).getProfile().getName();
+                                    }
+                                }
+
+                                String albumId = album.getUri() != null ? album.getUri() : System.currentTimeMillis() + "";
+                                Song song = new Song(
+                                        albumId,
+                                        album.getName(),
+                                        artistName,
+                                        coverUrl
+                                );
+
+                                boolean exists = false;
+                                for (Song s : songResults) {
+                                    if (s.getId() != null && s.getId().equals(song.getId())) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
+                                    songResults.add(song);
+                                }
+                            }
+                        }
+                    } else {
+                        android.util.Log.d("API_SUCCESS", "Albums ou items veio a null!");
+                    }
+                }
+
+                if (songResults.isEmpty()) {
+                    Toast.makeText(SearchResultsActivity.this, "Nenhum resultado encontrado.", Toast.LENGTH_SHORT).show();
+                }
+
+                if (songAdapter != null) {
+                    songAdapter.setSongs(songResults);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SpotifySearchResponse> call, Throwable t) {
+                android.util.Log.e("API_ERROR", "Falha no pedido à API: " + t.getMessage(), t);
+                Toast.makeText(SearchResultsActivity.this, "Erro: " + t.getMessage(), Toast.LENGTH_LONG).show();
+
+                if (songAdapter != null) {
+                    songAdapter.setSongs(songResults);
+                }
+            }
+        });
     }
 }

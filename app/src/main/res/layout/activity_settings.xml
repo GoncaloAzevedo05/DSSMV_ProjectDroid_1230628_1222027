@@ -4,7 +4,7 @@
               android:id="@+id/main_settings"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#121212"
+              android:background="@color/background_color"
               android:gravity="center_horizontal"
               android:orientation="vertical"
               android:padding="24dp">
@@ -34,7 +34,7 @@
             android:layout_marginTop="16dp"
             android:letterSpacing="0.01"
             android:text="Nome do Utilizador"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -62,7 +62,7 @@
             android:layout_marginBottom="12dp"
             android:text="Account info"
             android:textAlignment="viewStart"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="15sp"
             app:cornerRadius="12dp"
             app:icon="@android:drawable/ic_menu_info_details"
@@ -80,7 +80,7 @@
             android:layout_marginBottom="12dp"
             android:text="Favorites"
             android:textAlignment="viewStart"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="15sp"
             app:cornerRadius="12dp"
             app:icon="@android:drawable/btn_star"
@@ -98,7 +98,7 @@
             android:layout_marginBottom="12dp"
             android:text="Most Listen"
             android:textAlignment="viewStart"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="15sp"
             app:cornerRadius="12dp"
             app:icon="@android:drawable/ic_menu_compass"
@@ -107,6 +107,13 @@
             app:iconTint="#1DB954"
             app:strokeColor="#282828"
             app:strokeWidth="1dp" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/btnSwitchMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modo Escuro"
+            android:textColor="@color/text_color" />
 
     <View
             android:layout_width="match_parent"
@@ -118,7 +125,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="Logout"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="15sp"
             android:textStyle="bold"
             app:backgroundTint="#E50914"
@@ -135,7 +142,7 @@
             android:layout_height="60dp"
             android:layout_marginBottom="12dp"
             android:text="Downloaded Music"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textStyle="bold"
             app:cornerRadius="12dp"
             app:strokeColor="#282828" />

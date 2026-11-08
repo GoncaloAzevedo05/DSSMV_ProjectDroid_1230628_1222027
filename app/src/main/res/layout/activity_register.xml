@@ -4,7 +4,7 @@
             android:id="@+id/main_register"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#121212"
+            android:background="@color/background_color"
             android:fillViewport="true">
 
     <LinearLayout
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.05"
                 android:text="Criar Conta"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Nome de utilizador"
                     android:inputType="textPersonName"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_color"
                     android:textSize="15sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Email"
                     android:inputType="textEmailAddress"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_color"
                     android:textSize="15sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -121,7 +121,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Password (6-16 caracteres)"
                     android:inputType="textPassword"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_color"
                     android:textSize="15sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -150,7 +150,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Confirmar password"
                     android:inputType="textPassword"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_color"
                     android:textSize="15sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -170,7 +170,7 @@
                 android:layout_height="56dp"
                 android:layout_marginBottom="16dp"
                 android:text="Criar Conta"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:backgroundTint="#1DB954"

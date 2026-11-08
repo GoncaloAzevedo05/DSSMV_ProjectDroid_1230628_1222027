@@ -43,7 +43,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Playlist Title"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 

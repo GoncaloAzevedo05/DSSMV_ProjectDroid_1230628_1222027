@@ -16,14 +16,26 @@ import java.util.List;
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder>{
     private List<Song> songList;
     private OnSongClickListener clickListener;
+    private OnSongLongClickListener longClickListener;
 
     public interface OnSongClickListener {
         void onSongClick(Song song, List<Song> songList, int position);
     }
 
+    public interface OnSongLongClickListener {
+        void onSongLongClick(Song song, int position);
+    }
+
     public SongAdapter(List<Song> songList, OnSongClickListener clickListener) {
         this.songList = songList;
         this.clickListener = clickListener;
+        this.longClickListener = null;
+    }
+
+    public SongAdapter(List<Song> songList, OnSongClickListener clickListener, OnSongLongClickListener longClickListener) {
+        this.songList = songList;
+        this.clickListener = clickListener;
+        this.longClickListener = longClickListener;
     }
 
     @NonNull
@@ -54,6 +66,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             if (clickListener != null) {
                 clickListener.onSongClick(song, songList, holder.getAdapterPosition());
             }
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onSongLongClick(song, holder.getAdapterPosition());
+                return true;
+            }
+            return false;
         });
     }
 

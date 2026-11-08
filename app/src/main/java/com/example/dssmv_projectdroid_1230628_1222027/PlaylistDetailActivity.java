@@ -5,11 +5,14 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -18,9 +21,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
+import com.example.dssmv_projectdroid_1230628_1222027.ApiData.PlaylistReq;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Playlist;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
+import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +38,14 @@ import java.util.List;
 public class PlaylistDetailActivity extends AppCompatActivity {
     private ImageView imgPlaylistCover;
     private TextView txtPlaylistName, txtPlaylistCreator, txtToolbarTitle;
-    private Button btnPlaylistAction;
+    private Button btnPlaylistAction, btnAddSong;
     private RecyclerView recyclerPlaylistSongs;
 
     private Playlist playlist;
     private boolean isAlreadyDownloadedOrMine;
     private SharedPreferencesManager prefsManager;
     private SongAdapter songAdapter;
+    private ActivityResultLauncher<Intent> searchSongLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +65,8 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         txtPlaylistCreator = findViewById(R.id.txtPlaylistCreator);
         txtToolbarTitle = findViewById(R.id.txtToolbarTitle);
         btnPlaylistAction = findViewById(R.id.btnPlaylistAction);
+        btnAddSong = findViewById(R.id.btnAddSong);
+
         recyclerPlaylistSongs = findViewById(R.id.recyclerPlaylistSongs);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -65,16 +78,69 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             populateUI();
         }
 
+        searchSongLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Song selectedSong = (Song) result.getData().getSerializableExtra("SELECTED_SONG");
+                        if (selectedSong != null) {
+                            addSongToThisPlaylist(selectedSong);
+                        }
+                    }
+                }
+        );
+
         if (isAlreadyDownloadedOrMine) {
             btnPlaylistAction.setText("Delete");
             btnPlaylistAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E91429")));
             btnPlaylistAction.setOnClickListener(v -> deletePlaylistAndFinish());
+
+            if (!playlist.isDownloaded()) {
+                btnAddSong.setVisibility(View.VISIBLE);
+                btnAddSong.setOnClickListener(v -> {
+                    Intent intent = new Intent(PlaylistDetailActivity.this, SearchActivity.class);
+                    intent.putExtra("IS_SELECTION_MODE", true); // Modo de seleção
+                    searchSongLauncher.launch(intent);
+                });
+            } else {
+                btnAddSong.setVisibility(View.GONE);
+            }
         } else {
             btnPlaylistAction.setText("Add");
             btnPlaylistAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#1DB954")));
             btnPlaylistAction.setOnClickListener(v -> saveToDownloadedAndFinish());
+            btnAddSong.setVisibility(View.GONE);
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String userEmail = prefsManager.getUserEmail();
+
+        if (playlist.isDownloaded()) {
+            List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists(userEmail);
+            for (Playlist p : downloaded) {
+                if (p.getTitle().equals(playlist.getTitle())) {
+                    playlist = p;
+                    break;
+                }
+            }
+        } else {
+            List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
+            for (Playlist p : myLists) {
+                if (p.getTitle().equals(playlist.getTitle())) {
+                    playlist = p;
+                    break;
+                }
+            }
+        }
+
+        if (songAdapter != null && playlist.getSongs() != null) {
+            songAdapter.setSongs(playlist.getSongs());
+        }
+    }
+
     private void populateUI() {
         txtPlaylistName.setText(playlist.getTitle());
         txtToolbarTitle.setText(playlist.getTitle());
@@ -82,6 +148,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         if (playlist.getImageUrl() != null && !playlist.getImageUrl().isEmpty()) {
             Glide.with(this).load(playlist.getImageUrl()).into(imgPlaylistCover);
+        }
+
+        if (playlist.getSongs() == null) {
+            playlist.setSongs(new ArrayList<>());
         }
 
         songAdapter = new SongAdapter(playlist.getSongs(), (song, list, position) -> {
@@ -94,6 +164,49 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
         recyclerPlaylistSongs.setLayoutManager(new LinearLayoutManager(this));
         recyclerPlaylistSongs.setAdapter(songAdapter);
+    }
+
+    private void addSongToThisPlaylist(Song song) {
+        if (playlist.getSongs() == null) {
+            playlist.setSongs(new ArrayList<>());
+        }
+
+        for (Song s : playlist.getSongs()) {
+            if (s.getId().equals(song.getId())) {
+                Toast.makeText(this, "A música já faz parte desta playlist.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        playlist.getSongs().add(song);
+        songAdapter.notifyDataSetChanged();
+
+        String userEmail = prefsManager.getUserEmail();
+        List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
+        for (int i = 0; i < myLists.size(); i++) {
+            if (myLists.get(i).getTitle().equals(playlist.getTitle())) {
+                myLists.set(i, playlist);
+                break;
+            }
+        }
+        prefsManager.saveMyPlaylists(userEmail, myLists);
+
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+        PlaylistReq req = new PlaylistReq(userEmail, playlist.getTitle(), playlist.getImageUrl(), playlist.isDownloaded(), playlist.getSongs());
+
+        api.syncPlaylist("Bearer " + SupaBaseClient.getApiKey(), req).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(PlaylistDetailActivity.this, "Música adicionada e sincronizada!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(PlaylistDetailActivity.this, "Guardado localmente (offline).", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void saveToDownloadedAndFinish() {
@@ -111,11 +224,11 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         String userEmail = prefsManager.getUserEmail();
         if (playlist.isDownloaded()) {
             List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists(userEmail);
-            downloaded.removeIf(p -> p.getId().equals(playlist.getId()));
+            downloaded.removeIf(p -> p.getTitle().equals(playlist.getTitle()));
             prefsManager.saveDownloadedPlaylists(userEmail, downloaded);
         } else {
             List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
-            myLists.removeIf(p -> p.getId().equals(playlist.getId()));
+            myLists.removeIf(p -> p.getTitle().equals(playlist.getTitle()));
             prefsManager.saveMyPlaylists(userEmail, myLists);
         }
         Toast.makeText(this, "Playlist removida.", Toast.LENGTH_SHORT).show();

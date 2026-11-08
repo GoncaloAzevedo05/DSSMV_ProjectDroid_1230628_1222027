@@ -4,7 +4,7 @@
                 android:id="@+id/main_playlist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#121212"
+                android:background="@color/background_color"
                 android:padding="20dp">
 
     <LinearLayout
@@ -22,7 +22,7 @@
                 android:layout_weight="1"
                 android:letterSpacing="0.02"
                 android:text="My Playlists"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
@@ -87,7 +87,7 @@
             android:layout_marginBottom="8dp"
             android:contentDescription="Criar Playlist"
             android:text="New Playlist"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textStyle="bold"
             app:backgroundTint="#1DB954"
             app:icon="@android:drawable/ic_input_add"

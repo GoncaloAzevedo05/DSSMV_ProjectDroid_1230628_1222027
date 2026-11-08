@@ -15,13 +15,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.ProfileData;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
+import androidx.appcompat.app.AppCompatDelegate;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 
 public class SettingsActivity extends AppCompatActivity {
 
     private ImageView imgProfilePicture;
     private TextView txtUserName, txtUserEmail;
-    private Button btnAccountInfo, btnFavoriteSongs, btnTopArtist, btnLogout, btnDownloadedMusic;
+    private Button btnAccountInfo, btnFavoriteSongs, btnTopArtist, btnLogout, btnDownloadedMusic, btnSwitchMode;
     private ProfileData currentProfile;
 
 
@@ -44,6 +46,20 @@ public class SettingsActivity extends AppCompatActivity {
         btnTopArtist = findViewById(R.id.btnTopArtist);
         btnLogout = findViewById(R.id.btnLogout);
         btnDownloadedMusic = findViewById(R.id.btnDownloadedMusic);
+        SwitchMaterial switchTheme = findViewById(R.id.btnSwitchMode);
+        SharedPreferencesManager prefsManager = new SharedPreferencesManager(this);
+
+        boolean isDarkMode = prefsManager.loadDarkModeState();
+        switchTheme.setChecked(isDarkMode);
+
+        switchTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefsManager.saveDarkModeState(isChecked);
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+        });
 
         String email = getIntent().getStringExtra("USER_EMAIL");
         String name = getIntent().getStringExtra("USER_NAME");
@@ -95,7 +111,6 @@ public class SettingsActivity extends AppCompatActivity {
                     .setTitle("Sair da Conta")
                     .setMessage("Tens a certeza que pretendes terminar a sessão?")
                     .setPositiveButton("Sair", (dialog, which) -> {
-                        SharedPreferencesManager prefsManager = new SharedPreferencesManager(SettingsActivity.this);
                         prefsManager.clearUserSession();
 
 

@@ -13,6 +13,7 @@ public class SharedPreferencesManager {
     private static final String KEY_MY_PLAYLISTS = "my_playlists";
     private static final String KEY_DOWNLOADED_PLAYLISTS = "downloaded_playlists";
     private static final String KEY_SEARCH_HISTORY = "search_history_list";
+    private static final String KEY_DARK_MODE = "dark_mode_enabled";
 
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_USER_NAME = "user_name";
@@ -147,5 +148,22 @@ public class SharedPreferencesManager {
         }
         java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<Song>>() {}.getType();
         return new com.google.gson.Gson().fromJson(json, type);
+    }
+
+    public void incrementPlayCount(String songId) {
+        int currentCount = getPlayCount(songId);
+        sharedPreferences.edit().putInt("play_count_" + songId, currentCount + 1).apply();
+    }
+
+    public int getPlayCount(String songId) {
+        return sharedPreferences.getInt("play_count_" + songId, 0);
+    }
+
+    public void saveDarkModeState(boolean isEnabled) {
+        sharedPreferences.edit().putBoolean(KEY_DARK_MODE, isEnabled).apply();
+    }
+
+    public boolean loadDarkModeState() {
+        return sharedPreferences.getBoolean(KEY_DARK_MODE, false);
     }
 }

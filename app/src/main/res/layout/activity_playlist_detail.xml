@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:id="@+id/main_playlist_detail"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:background="#121212"
+              android:background="@color/background_color"
               android:padding="16dp">
 
     <LinearLayout
@@ -21,7 +22,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_revert"
                 android:contentDescription="Voltar"
-                app:tint="#FFFFFF" xmlns:app="http://schemas.android.com/apk/res-auto" />
+                app:tint="#FFFFFF" />
 
         <TextView
                 android:id="@+id/txtToolbarTitle"
@@ -30,7 +31,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="16dp"
                 android:text="Detalhes"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:maxLines="1"
@@ -41,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:text="Add"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:backgroundTint="#1DB954" />
     </LinearLayout>
 
@@ -50,7 +51,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp">
 
         <ImageView
                 android:id="@+id/imgPlaylistCover"
@@ -72,7 +73,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Nome da Playlist"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_color"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:maxLines="2"
@@ -89,9 +90,21 @@
         </LinearLayout>
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddSong"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginBottom="16dp"
+            android:text="+ Adicionar Música"
+            android:textColor="@color/text_color"
+            app:strokeColor="#1DB954"
+            app:rippleColor="#1DB954" />
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerPlaylistSongs"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
 </LinearLayout>

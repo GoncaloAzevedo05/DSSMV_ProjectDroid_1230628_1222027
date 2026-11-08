@@ -107,6 +107,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         loadSongData(currentSong);
 
+        prefsManager.incrementPlayCount(currentSong.getId());
+
         btnPlayPause.setOnClickListener(v -> {
             if (mediaPlayer != null) {
                 if (mediaPlayer.isPlaying()) {

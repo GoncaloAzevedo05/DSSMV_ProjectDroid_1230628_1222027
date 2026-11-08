@@ -4,7 +4,7 @@
               android:id="@+id/main_login"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#121212"
+              android:background="@color/background_color"
               android:gravity="center"
               android:orientation="vertical"
               android:padding="28dp">
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:letterSpacing="0.05"
             android:text="SoundDroid"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="32sp"
             android:textStyle="bold" />
 
@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:textColorHint="#B3B3B3"
-            app:boxBackgroundColor="#282828"
+            app:boxBackgroundColor="#FFFFFF"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Email"
                 android:inputType="textEmailAddress"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="15sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:textColorHint="#B3B3B3"
-            app:boxBackgroundColor="#282828"
+            app:boxBackgroundColor="#FFFFFF"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Password (6-16 caracteres)"
                 android:inputType="textPassword"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_color"
                 android:textSize="15sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -115,7 +115,7 @@
             android:layout_height="56dp"
             android:layout_marginBottom="16dp"
             android:text="Entrar"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_color"
             android:textSize="16sp"
             android:textStyle="bold"
             app:backgroundTint="#1DB954"
