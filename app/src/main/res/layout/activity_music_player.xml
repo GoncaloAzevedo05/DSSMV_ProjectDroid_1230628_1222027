@@ -23,8 +23,7 @@
                 android:layout_height="match_parent"
                 android:contentDescription="Capa do Álbum"
                 android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_gallery"
-                app:tint="#535353" />
+                android:src="@android:drawable/ic_menu_gallery"/>
     </androidx.cardview.widget.CardView>
 
     <TextView

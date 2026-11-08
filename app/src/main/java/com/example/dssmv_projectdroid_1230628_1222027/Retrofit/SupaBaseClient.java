@@ -42,4 +42,6 @@ public class SupaBaseClient {
     public static String getApiKey() {
         return API_KEY;
     }
+
+    public static String getBaseUrl() {return BASE_URL;}
 }

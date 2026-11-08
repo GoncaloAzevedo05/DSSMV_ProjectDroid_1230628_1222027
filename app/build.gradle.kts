@@ -7,7 +7,7 @@ val localProperties = Properties().apply {
         load(FileInputStream(localPropertiesFile))
     }
 }
-val rapidApiKey: String = localProperties.getProperty("RAPID_API_KEY", "")
+val jamendoClientId: String = localProperties.getProperty("JAMENDO_CLIENT_ID", "")
 
 plugins {
     id("com.android.application")
@@ -29,7 +29,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "RAPID_API_KEY", "\"$rapidApiKey\"")
+        buildConfigField("String", "JAMENDO_CLIENT_ID", "\"$jamendoClientId\"")
     }
 
     buildFeatures { buildConfig = true }

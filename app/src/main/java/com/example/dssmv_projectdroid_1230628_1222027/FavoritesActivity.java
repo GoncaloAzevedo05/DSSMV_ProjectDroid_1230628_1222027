@@ -2,7 +2,7 @@ package com.example.dssmv_projectdroid_1230628_1222027;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageButton;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -15,10 +15,9 @@ import com.example.dssmv_projectdroid_1230628_1222027.Adapters.SongAdapter;
 import com.example.dssmv_projectdroid_1230628_1222027.ApiData.UserFavoriteResponse;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesManager;
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
-import com.example.dssmv_projectdroid_1230628_1222027.MusicPlayerActivity;
-import com.example.dssmv_projectdroid_1230628_1222027.R;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,17 +66,51 @@ public class FavoritesActivity extends AppCompatActivity {
             favoriteSongsList.addAll(localSongs);
         }
 
-        SongAdapter adapter = new SongAdapter(favoriteSongsList, (song, list, position) -> {
+        adapter = new SongAdapter(favoriteSongsList, (song, list, position) -> {
             Intent intent = new Intent(FavoritesActivity.this, MusicPlayerActivity.class);
             intent.putExtra("SONG_KEY", song);
             intent.putExtra("SONG_LIST", (ArrayList<Song>) list);
             intent.putExtra("CURRENT_INDEX", position);
             startActivity(intent);
         });
+        adapter.setOnRemoveListener((song, position) -> removeFavorite(song));
 
         if (recyclerFavorites != null) {
             recyclerFavorites.setAdapter(adapter);
         }
+    }
+
+    private void removeFavorite(Song song) {
+        String userEmail = prefsManager.getUserEmail();
+
+        List<Song> favorites = prefsManager.loadFavoriteSongs(userEmail);
+        if (favorites != null) {
+            favorites.removeIf(s -> s.getId() != null && s.getId().equals(song.getId()));
+            prefsManager.saveFavoriteSongs(userEmail, favorites);
+        }
+
+        favoriteSongsList.removeIf(s -> s.getId() != null && s.getId().equals(song.getId()));
+        if (adapter != null) {
+            adapter.setSongs(favoriteSongsList);
+        }
+
+        SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
+        api.removeFavorite("Bearer " + SupaBaseClient.getApiKey(), "eq." + userEmail, "eq." + song.getId())
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (!response.isSuccessful()) {
+                            android.util.Log.e("FAVORITE_ERR", "Remover: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        android.util.Log.e("FAVORITE_FALHA", "Falha de rede: " + t.getMessage());
+                    }
+                });
+
+        Toast.makeText(this, "Removido dos favoritos", Toast.LENGTH_SHORT).show();
     }
 
     private void fetchRemoteFavorites() {
@@ -98,8 +131,7 @@ public class FavoritesActivity extends AppCompatActivity {
                                 String audio = item.getAudioUrl() != null ? item.getAudioUrl() : "";
                                 String image = item.getImageUrl() != null ? item.getImageUrl() : "";
 
-                                Song s = new Song(id, title, artist, audio, image);
-                                remoteFavorites.add(s);
+                                remoteFavorites.add(new Song(id, title, artist, audio, image));
                             }
                             prefsManager.saveFavoriteSongs(userEmail, remoteFavorites);
                             favoriteSongsList.clear();

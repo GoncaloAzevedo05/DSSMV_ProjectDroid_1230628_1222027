@@ -1,6 +1,7 @@
 package com.example.dssmv_projectdroid_1230628_1222027;
 
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +26,8 @@ import com.example.dssmv_projectdroid_1230628_1222027.Model.SharedPreferencesMan
 import com.example.dssmv_projectdroid_1230628_1222027.Model.Song;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseClient;
 import com.example.dssmv_projectdroid_1230628_1222027.Retrofit.SupaBaseInterface;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MusicPlayerActivity extends AppCompatActivity {
+    private static final String PREFS_PLAYER = "player_state";
+
     private ImageView imgAlbumCover;
     private TextView txtSongTitle, txtArtistName, txtCurrentTime, txtTotalTime;
     private ImageButton btnFavorite, btnPrevious, btnPlayPause, btnNext, btnAddToPlaylist;
@@ -94,14 +99,18 @@ public class MusicPlayerActivity extends AppCompatActivity {
         currentSong = (Song) getIntent().getSerializableExtra("SONG_KEY");
 
         if (songList == null || songList.isEmpty()) {
-            songList = new ArrayList<>();
             if (currentSong != null) {
+                songList = new ArrayList<>();
                 songList.add(currentSong);
-            } else {
-                currentSong = new Song("1", "Starboy", "The Weeknd", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
-                songList.add(currentSong);
+                currentIndex = 0;
+            } else if (!restoreLastPlayed()) {
+                // Abriu pelo "Now Playing" e ainda não há nada ouvido
+                Toast.makeText(this, "Ainda não ouviste nenhuma música.", Toast.LENGTH_LONG).show();
+                finish();
+                return;
             }
-        } else if (currentSong == null && !songList.isEmpty()) {
+        } else if (currentSong == null) {
+            if (currentIndex < 0 || currentIndex >= songList.size()) currentIndex = 0;
             currentSong = songList.get(currentIndex);
         }
 
@@ -183,12 +192,46 @@ public class MusicPlayerActivity extends AppCompatActivity {
         });
     }
 
+
+    private String playerKey(String name) {
+        String email = prefsManager.getUserEmail();
+        return name + "_" + (email != null ? email : "default");
+    }
+
+    private void saveLastPlayed() {
+        if (currentSong == null || songList == null || songList.isEmpty()) return;
+        getSharedPreferences(PREFS_PLAYER, MODE_PRIVATE).edit()
+                .putString(playerKey("queue"), new Gson().toJson(songList))
+                .putInt(playerKey("index"), currentIndex)
+                .apply();
+    }
+
+    private boolean restoreLastPlayed() {
+        SharedPreferences sp = getSharedPreferences(PREFS_PLAYER, MODE_PRIVATE);
+        String json = sp.getString(playerKey("queue"), null);
+        if (json == null) return false;
+
+        List<Song> saved = new Gson().fromJson(json, new TypeToken<ArrayList<Song>>() {}.getType());
+        if (saved == null || saved.isEmpty()) return false;
+
+        int index = sp.getInt(playerKey("index"), 0);
+        if (index < 0 || index >= saved.size()) index = 0;
+
+        songList = saved;
+        currentIndex = index;
+        currentSong = saved.get(index);
+        return true;
+    }
+
+
     private void loadSongData(Song song) {
         if (song == null) return;
 
         txtSongTitle.setText(song.getTitle());
         txtArtistName.setText(song.getArtist());
         audioUrl = song.getAudioUrl();
+
+        saveLastPlayed();
 
         if (song.getImageUrl() != null && !song.getImageUrl().isEmpty()) {
             Glide.with(this)
@@ -216,18 +259,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         try {
             mediaPlayer = new MediaPlayer();
-            if (audioUrl.startsWith("content://")) {
-                mediaPlayer.setDataSource(this, Uri.parse(audioUrl));
-            } else {
-                mediaPlayer.setDataSource(audioUrl);
-            }
-            mediaPlayer.prepareAsync();
+
             mediaPlayer.setOnPreparedListener(mp -> {
                 mp.start();
                 isPlaying = true;
                 btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
 
-                int duration = mediaPlayer.getDuration();
+                int duration = mp.getDuration();
                 seekBar.setMax(duration);
                 txtTotalTime.setText(formatTime(duration));
 
@@ -242,6 +280,19 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     loadSongData(currentSong);
                 }
             });
+
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                android.util.Log.e("PLAYER_ERR", "what=" + what + " extra=" + extra + " url=" + audioUrl);
+                Toast.makeText(this, "Não foi possível reproduzir esta faixa", Toast.LENGTH_SHORT).show();
+                return true;
+            });
+
+            if (audioUrl.startsWith("content://")) {
+                mediaPlayer.setDataSource(this, Uri.parse(audioUrl));
+            } else {
+                mediaPlayer.setDataSource(audioUrl);
+            }
+            mediaPlayer.prepareAsync();
 
         } catch (IOException e) {
             e.printStackTrace();

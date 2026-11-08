@@ -3,6 +3,7 @@ package com.example.dssmv_projectdroid_1230628_1222027.Adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +18,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
     private List<Song> songList;
     private OnSongClickListener clickListener;
     private OnSongLongClickListener longClickListener;
+    private OnSongRemoveListener removeListener;
 
     public interface OnSongClickListener {
         void onSongClick(Song song, List<Song> songList, int position);
@@ -24,6 +26,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
     public interface OnSongLongClickListener {
         void onSongLongClick(Song song, int position);
+    }
+
+    public interface OnSongRemoveListener {
+        void onSongRemove(Song song, int position);
     }
 
     public SongAdapter(List<Song> songList, OnSongClickListener clickListener) {
@@ -36,6 +42,11 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
         this.songList = songList;
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
+    }
+
+    public void setOnRemoveListener(OnSongRemoveListener removeListener) {
+        this.removeListener = removeListener;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -57,6 +68,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             Glide.with(holder.itemView.getContext())
                     .load(song.getImageUrl())
                     .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_gallery)
                     .into(holder.imgCover);
         } else {
             holder.imgCover.setImageResource(android.R.drawable.ic_menu_gallery);
@@ -75,6 +87,19 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             }
             return false;
         });
+
+        if (removeListener != null) {
+            holder.btnRemove.setVisibility(View.VISIBLE);
+            holder.btnRemove.setOnClickListener(v -> {
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    removeListener.onSongRemove(song, pos);
+                }
+            });
+        } else {
+            holder.btnRemove.setVisibility(View.GONE);
+            holder.btnRemove.setOnClickListener(null);
+        }
     }
 
     @Override
@@ -90,12 +115,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
     static class SongViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView txtTitle, txtArtist;
+        ImageButton btnRemove;
 
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
             imgCover = itemView.findViewById(R.id.imgSongCover);
             txtTitle = itemView.findViewById(R.id.txtSongTitle);
             txtArtist = itemView.findViewById(R.id.txtArtistName);
+            btnRemove = itemView.findViewById(R.id.btnRemoveSong);
         }
     }
 }

@@ -30,7 +30,12 @@ public class Song implements Serializable{
     public String getTitle() { return title; }
     public String getArtist() { return artist; }
     public String getAudioUrl() { return audioUrl; }
-    public String getImageUrl() { return imageUrl; }
+    public String getImageUrl() {
+        if (imageUrl != null && imageUrl.contains("usercontent.jamendo.com?")) {
+            return imageUrl.replace("usercontent.jamendo.com?", "usercontent.jamendo.com/?");
+        }
+        return imageUrl;
+    }
 
     public void setId(String id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }

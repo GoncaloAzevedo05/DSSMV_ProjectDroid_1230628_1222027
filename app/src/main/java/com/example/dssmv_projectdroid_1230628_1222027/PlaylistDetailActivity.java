@@ -162,6 +162,10 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        if (isAlreadyDownloadedOrMine) {
+            songAdapter.setOnRemoveListener((song, position) -> removeSongFromThisPlaylist(song));
+        }
+
         recyclerPlaylistSongs.setLayoutManager(new LinearLayoutManager(this));
         recyclerPlaylistSongs.setAdapter(songAdapter);
     }
@@ -181,24 +185,58 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         playlist.getSongs().add(song);
         songAdapter.notifyDataSetChanged();
 
-        String userEmail = prefsManager.getUserEmail();
-        List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
-        for (int i = 0; i < myLists.size(); i++) {
-            if (myLists.get(i).getTitle().equals(playlist.getTitle())) {
-                myLists.set(i, playlist);
-                break;
-            }
-        }
-        prefsManager.saveMyPlaylists(userEmail, myLists);
+        saveCurrentPlaylistLocally();
+        syncPlaylistToCloud("Música adicionada e sincronizada!");
+    }
 
+    private void removeSongFromThisPlaylist(Song song) {
+        if (playlist.getSongs() == null) return;
+
+        playlist.getSongs().removeIf(s -> s.getId() != null && s.getId().equals(song.getId()));
+        songAdapter.setSongs(playlist.getSongs());
+
+        saveCurrentPlaylistLocally();
+        Toast.makeText(this, "Música removida.", Toast.LENGTH_SHORT).show();
+        syncPlaylistToCloud(null);
+    }
+
+    // Grava no telemóvel a playlist atual (das tuas ou das downloaded)
+    private void saveCurrentPlaylistLocally() {
+        String userEmail = prefsManager.getUserEmail();
+
+        if (playlist.isDownloaded()) {
+            List<Playlist> downloaded = prefsManager.loadDownloadedPlaylists(userEmail);
+            for (int i = 0; i < downloaded.size(); i++) {
+                if (downloaded.get(i).getTitle().equals(playlist.getTitle())) {
+                    downloaded.set(i, playlist);
+                    break;
+                }
+            }
+            prefsManager.saveDownloadedPlaylists(userEmail, downloaded);
+        } else {
+            List<Playlist> myLists = prefsManager.loadMyPlaylists(userEmail);
+            for (int i = 0; i < myLists.size(); i++) {
+                if (myLists.get(i).getTitle().equals(playlist.getTitle())) {
+                    myLists.set(i, playlist);
+                    break;
+                }
+            }
+            prefsManager.saveMyPlaylists(userEmail, myLists);
+        }
+    }
+
+    private void syncPlaylistToCloud(final String successMessage) {
+        String userEmail = prefsManager.getUserEmail();
         SupaBaseInterface api = SupaBaseClient.getClient().create(SupaBaseInterface.class);
         PlaylistReq req = new PlaylistReq(userEmail, playlist.getTitle(), playlist.getImageUrl(), playlist.isDownloaded(), playlist.getSongs());
 
         api.syncPlaylist("Bearer " + SupaBaseClient.getApiKey(), req).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(PlaylistDetailActivity.this, "Música adicionada e sincronizada!", Toast.LENGTH_SHORT).show();
+                if (response.isSuccessful() && successMessage != null) {
+                    Toast.makeText(PlaylistDetailActivity.this, successMessage, Toast.LENGTH_SHORT).show();
+                } else if (!response.isSuccessful()) {
+                    android.util.Log.e("SYNC_ERR", "HTTP " + response.code());
                 }
             }
 

@@ -26,8 +26,8 @@ public class SearchActivity extends AppCompatActivity {
     private List<String> searchHistory;
     private ArrayAdapter<String> historyAdapter;
 
-    private final String[] filterOptions = {"Todos (multi)", "Músicas (tracks)", "Álbuns (albums)", "Artistas (artists)"};
-    private final String[] filterApiValues = {"multi", "tracks", "albums", "artists"};
+    private final String[] filterOptions = {"Todos (multi)", "Músicas (tracks)", "Artistas (artists)", "Playlists (playlists)"};
+    private final String[] filterApiValues = {"multi", "tracks", "artists", "playlists"};
     private int selectedFilterIndex = 0;
 
     @Override
